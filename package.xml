@@ -1,0 +1,18 @@
+<package format="3">
+  <name>ogm_flow_estimator_static</name>
+  <version>0.0.0</version>
+  <description>Algorithm partially published on SI2024</description>
+  <maintainer email="ryuichiueda@gmail.com">Ryuichi Ueda</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>rclrs</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>builtin_interfaces</depend>
+  <depend>geometry_msgs</depend>
+
+  <export>
+    <build_type>ament_cargo</build_type>
+  </export>
+</package>
