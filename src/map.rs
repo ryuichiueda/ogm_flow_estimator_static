@@ -35,20 +35,29 @@ pub fn generate(width: u32, height: u32, resolution: f32) -> OccupancyGrid {
         OccupancyGrid { header, info, data: vec![0; size], }
 }
 
-pub fn plot(x: f64, y: f64, val: i8, map: &mut OccupancyGrid) {
-    let res = map.info.resolution as f64;
-    let map_x = ((x - map.info.origin.position.x)/res).floor() as i32;
-    let map_y = ((y - map.info.origin.position.y)/res).floor() as i32;
-
-    if map_x < 0 || map_y < 0 {
-        return;
-    }
-
-    let index = (map_y as usize)*(map.info.width as usize)
-                + (map_x as usize);
-
-    map.data[index] = val;
+pub struct StaticObstacleMap {
+    pub map: OccupancyGrid,
 }
 
+impl StaticObstacleMap {
+    pub fn new(width: u32, height: u32, resolution: f32) -> Self {
+        Self {
+            map: generate(width, height, resolution),
+        }
+    }
 
-
+    pub fn plot(&mut self, x: f64, y: f64, val: i8) {
+        let res = self.map.info.resolution as f64;
+        let map_x = ((x - self.map.info.origin.position.x)/res).floor() as i32;
+        let map_y = ((y - self.map.info.origin.position.y)/res).floor() as i32;
+    
+        if map_x < 0 || map_y < 0 {
+            return;
+        }
+    
+        let index = (map_y as usize)*(self.map.info.width as usize)
+                    + (map_x as usize);
+    
+        self.map.data[index] = val;
+    }
+}
