@@ -18,6 +18,28 @@ struct FlowEstimatorNode {
     obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
 }
 
+fn generate_white_map() -> OccupancyGrid {
+        let clock = Clock::system();
+        let now = clock.now();
+        let nanosec = (now.nsec as u32 ) % 1_000_000_000;
+        let sec = (now.nsec / 1_000_000_000) as i32;
+
+        let header = Header {
+            stamp: Time{ nanosec, sec },
+            frame_id: "map".to_string(),
+        };
+
+        let info = MapMetaData {
+            map_load_time: Time{ nanosec: nanosec, sec: sec },
+            resolution: 0.1,
+            width: 13, 
+            height: 13, 
+            origin: Pose::default(),
+        };
+
+        OccupancyGrid { header, info, data: vec![0; 13*13], }
+}
+
 impl FlowEstimatorNode {
     fn new(context: &rclrs::Context) -> Result<Self, rclrs::RclrsError> {
         let node = rclrs::Node::new(context, "republisher")?;
@@ -42,6 +64,7 @@ impl FlowEstimatorNode {
         let scan = self.data.lock().unwrap();
         dbg!("{:?}", &scan);
 
+        /*
         let clock = Clock::system();
         let now = clock.now();
         let nanosec = (now.nsec as u32 ) % 1_000_000_000;
@@ -61,6 +84,12 @@ impl FlowEstimatorNode {
         };
 
         let mut tmp = vec![100; 13*13];
+        */
+
+        let mut  map = generate_white_map();
+        map.data[0] = 100;
+
+        /*
         let black = vec![1, 4, 5, 9, 10, 11,
                          0+13, 1+13, 2+13, 11+13,
                          0+26, 2+26, 7+26, 11+26,
@@ -85,6 +114,7 @@ impl FlowEstimatorNode {
         }
 
         let map = OccupancyGrid { header, info, data, };
+        */
         self.obstacle_map.publish(map)?;
 
         Ok(())
