@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
 use nav_msgs::msg::OccupancyGrid;
 use map::StaticObstacleMap;
+use std::ops::Deref;
 
 struct FlowEstimatorNode {
     node: Arc<rclrs::Node>,
@@ -37,10 +38,15 @@ impl FlowEstimatorNode {
     }
 
     fn republish(&self, static_obs_map: &mut StaticObstacleMap) -> Result<(), rclrs::RclrsError> {
-        let scan = self.data.lock().unwrap();
+        let scan = match self.data.lock().unwrap().deref() {
+            Some(s) => s.clone(),
+            None => {
+                eprintln!("waiting scan");
+                return Ok(());
+            },
+        };
 
-        static_obs_map.plot(1.0, 2.0, 100);
-
+        static_obs_map.scan_to_occupancy(&scan);
         self.static_obstacle_map.publish(static_obs_map.map.clone())?;
 
         Ok(())

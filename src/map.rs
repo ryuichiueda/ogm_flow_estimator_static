@@ -7,6 +7,7 @@ use std_msgs::msg::Header;
 use rclrs::Clock;
 use builtin_interfaces::msg::Time;
 use geometry_msgs::msg::Pose;
+use sensor_msgs::msg::LaserScan;
 
 pub fn generate(width: u32, height: u32, resolution: f32) -> OccupancyGrid {
         let clock = Clock::system();
@@ -44,6 +45,37 @@ impl StaticObstacleMap {
         Self {
             map: generate(width, height, resolution),
         }
+    }
+
+    pub fn scan_to_occupancy(&mut self, scan: &LaserScan) {
+        for (i, range) in scan.ranges.iter().enumerate() {
+            if range < &scan.range_min || range > &scan.range_max  {
+                continue;
+            }
+
+            let angle = (&scan.angle_min + &scan.angle_increment*(i as f32)) as f64;
+            let x = (*range as f64)*angle.cos();
+            let y = (*range as f64)*angle.sin();
+
+            self.plot(x, y, 100);
+        }
+        /*
+            angle_min: 0.0,
+    angle_max: 6.28,
+    angle_increment: 0.017493036,
+    time_increment: 0.0,
+    scan_time: 0.0,
+    range_min: 0.12,
+    range_max: 3.5,
+    ranges: [
+        inf,
+        inf,
+        inf,
+        inf,
+        inf,
+        inf,
+        2.3657167,
+    */
     }
 
     pub fn plot(&mut self, x: f64, y: f64, val: i8) {
