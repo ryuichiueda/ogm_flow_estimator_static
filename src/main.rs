@@ -18,7 +18,7 @@ struct FlowEstimatorNode {
     obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
 }
 
-fn generate_white_map() -> OccupancyGrid {
+fn generate_white_map(width: u32, height: u32, resolution: f32) -> OccupancyGrid {
         let clock = Clock::system();
         let now = clock.now();
         let nanosec = (now.nsec as u32 ) % 1_000_000_000;
@@ -31,13 +31,14 @@ fn generate_white_map() -> OccupancyGrid {
 
         let info = MapMetaData {
             map_load_time: Time{ nanosec: nanosec, sec: sec },
-            resolution: 0.1,
-            width: 13, 
-            height: 13, 
+            resolution,
+            width, 
+            height, 
             origin: Pose::default(),
         };
 
-        OccupancyGrid { header, info, data: vec![0; 13*13], }
+        let size = (width*height) as usize;
+        OccupancyGrid { header, info, data: vec![0; size], }
 }
 
 impl FlowEstimatorNode {
@@ -64,57 +65,9 @@ impl FlowEstimatorNode {
         let scan = self.data.lock().unwrap();
         dbg!("{:?}", &scan);
 
-        /*
-        let clock = Clock::system();
-        let now = clock.now();
-        let nanosec = (now.nsec as u32 ) % 1_000_000_000;
-        let sec = (now.nsec / 1_000_000_000) as i32;
-
-        let header = Header {
-            stamp: Time{ nanosec, sec },
-            frame_id: "map".to_string(),
-        };
-
-        let info = MapMetaData {
-            map_load_time: Time{ nanosec: nanosec, sec: sec },
-            resolution: 0.1,
-            width: 13, 
-            height: 13, 
-            origin: Pose::default(),
-        };
-
-        let mut tmp = vec![100; 13*13];
-        */
-
-        let mut  map = generate_white_map();
+        let mut map = generate_white_map(20, 20, 0.1);
         map.data[0] = 100;
 
-        /*
-        let black = vec![1, 4, 5, 9, 10, 11,
-                         0+13, 1+13, 2+13, 11+13,
-                         0+26, 2+26, 7+26, 11+26,
-                         2+39, 7+39, 11+39,
-                         2+52, 4+52, 5+52, 6+52, 9+52, 10+52, 11+52,
-                         0+78, 1+78, 6+78, 7+78, 8+78,
-                         0+91, 7+91,
-                         0+104, 1+104, 3+104, 5+104, 6+104, 7+104, 8+104, 10+104, 12+104,
-                         0+117, 3+117, 5+117, 7+117, 10+117, 12+117,
-                         0+130, 5+130, 7+130, 12+130,
-                         0+143, 1+143, 2+143, 5+143, 7+143, 8+143, 9+143, 12+143,
-                         4+156, 5+156, 11+156
-        ];
-        for b in black {
-            tmp[b] = 0;
-        }
-
-        let mut data = vec![];
-        for i in 0..13 {
-            let v = tmp[i*13..i*13+13].to_vec();
-            data.append( &mut v.into_iter().rev().collect() );
-        }
-
-        let map = OccupancyGrid { header, info, data, };
-        */
         self.obstacle_map.publish(map)?;
 
         Ok(())
