@@ -12,12 +12,12 @@ struct FlowEstimatorNode {
     node: Arc<rclrs::Node>,
     _sub_scan: Arc<rclrs::Subscription<LaserScan>>,
     data: Arc<Mutex<Option<LaserScan>>>,
-    obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
+    static_obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
 }
 
 impl FlowEstimatorNode {
     fn new(context: &rclrs::Context) -> Result<Self, rclrs::RclrsError> {
-        let node = rclrs::Node::new(context, "republisher")?;
+        let node = rclrs::Node::new(context, "flow_estimator")?;
         let data = Arc::new(Mutex::new(None));
         let data_cb = Arc::clone(&data);
         let _sub_scan = node.create_subscription(
@@ -26,12 +26,12 @@ impl FlowEstimatorNode {
             move |msg: LaserScan| { *data_cb.lock().unwrap() = Some(msg); },
         )?;
 
-        let obstacle_map = node.create_publisher("obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
+        let static_obstacle_map = node.create_publisher("static_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
         Ok(Self {
             node,
             _sub_scan,
             data,
-            obstacle_map,
+            static_obstacle_map,
         })
     }
 
@@ -41,7 +41,7 @@ impl FlowEstimatorNode {
         let mut map = map::generate(60, 120, 0.1);
         map::plot(1.0, 2.0, 100, &mut map);
 
-        self.obstacle_map.publish(map)?;
+        self.static_obstacle_map.publish(map)?;
 
         Ok(())
     }
