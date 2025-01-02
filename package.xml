@@ -3,7 +3,7 @@
   <version>0.0.0</version>
   <description>Algorithm partially published on SI2024</description>
   <maintainer email="ryuichiueda@gmail.com">Ryuichi Ueda</maintainer>
-  <license>Apache-2.0</license>
+  <license>BSD-3-Clause</license>
 
   <depend>rclrs</depend>
   <depend>std_msgs</depend>

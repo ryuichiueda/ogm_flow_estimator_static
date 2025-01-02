@@ -1,6 +1,6 @@
 //SPDX-FileCopyrightText: ros2_rust contributers
 //SPDX-FileCopyrightText: Ryuichi Ueda <ryuichiueda@gmail.com>
-//SPDX-License-Identifier: Apache-2.0
+//SPDX-License-Identifier: BSD-3-Clause
 
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
