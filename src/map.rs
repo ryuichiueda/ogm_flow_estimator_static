@@ -14,9 +14,13 @@ pub fn generate(width: u32, height: u32, resolution: f32) -> OccupancyGrid {
         let nanosec = (now.nsec as u32 ) % 1_000_000_000;
         let sec = (now.nsec / 1_000_000_000) as i32;
 
+        let mut origin = Pose::default();
+        origin.position.x = -((width as f32)*resolution/2.0) as f64;
+        origin.position.y = -((height as f32)*resolution/2.0) as f64;
+
         let header = Header {
             stamp: Time{ nanosec, sec },
-            frame_id: "map".to_string(),
+            frame_id: "base_scan".to_string(),
         };
 
         let info = MapMetaData {
@@ -24,7 +28,7 @@ pub fn generate(width: u32, height: u32, resolution: f32) -> OccupancyGrid {
             resolution,
             width, 
             height, 
-            origin: Pose::default(),
+            origin,
         };
 
         let size = (width*height) as usize;

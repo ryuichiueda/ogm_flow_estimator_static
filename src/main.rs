@@ -39,7 +39,7 @@ impl FlowEstimatorNode {
         let scan = self.data.lock().unwrap();
         dbg!("{:?}", &scan);
 
-        let mut map = map::generate(20, 20, 0.1);
+        let mut map = map::generate(120, 120, 0.1);
         map.data[0] = 100;
 
         self.obstacle_map.publish(map)?;
