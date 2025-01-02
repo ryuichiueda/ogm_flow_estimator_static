@@ -38,7 +38,8 @@ impl FlowEstimatorNode {
     fn republish(&self) -> Result<(), rclrs::RclrsError> {
         let scan = self.data.lock().unwrap();
 
-        let mut map = map::generate(120, 120, 0.1);
+        let mut map = map::generate(60, 120, 0.1);
+        map::plot(1.0, 2.0, 100, &mut map);
 
         self.obstacle_map.publish(map)?;
 
