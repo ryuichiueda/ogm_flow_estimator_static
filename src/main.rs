@@ -2,43 +2,17 @@
 //SPDX-FileCopyrightText: Ryuichi Ueda <ryuichiueda@gmail.com>
 //SPDX-License-Identifier: BSD-3-Clause
 
+mod map;
+
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
 use nav_msgs::msg::OccupancyGrid;
-use nav_msgs::msg::MapMetaData;
-use std_msgs::msg::Header;
-use rclrs::Clock;
-use builtin_interfaces::msg::Time;
-use geometry_msgs::msg::Pose;
 
 struct FlowEstimatorNode {
     node: Arc<rclrs::Node>,
     _sub_scan: Arc<rclrs::Subscription<LaserScan>>,
     data: Arc<Mutex<Option<LaserScan>>>,
     obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
-}
-
-fn generate_white_map(width: u32, height: u32, resolution: f32) -> OccupancyGrid {
-        let clock = Clock::system();
-        let now = clock.now();
-        let nanosec = (now.nsec as u32 ) % 1_000_000_000;
-        let sec = (now.nsec / 1_000_000_000) as i32;
-
-        let header = Header {
-            stamp: Time{ nanosec, sec },
-            frame_id: "map".to_string(),
-        };
-
-        let info = MapMetaData {
-            map_load_time: Time{ nanosec: nanosec, sec: sec },
-            resolution,
-            width, 
-            height, 
-            origin: Pose::default(),
-        };
-
-        let size = (width*height) as usize;
-        OccupancyGrid { header, info, data: vec![0; size], }
 }
 
 impl FlowEstimatorNode {
@@ -65,7 +39,7 @@ impl FlowEstimatorNode {
         let scan = self.data.lock().unwrap();
         dbg!("{:?}", &scan);
 
-        let mut map = generate_white_map(20, 20, 0.1);
+        let mut map = map::generate(20, 20, 0.1);
         map.data[0] = 100;
 
         self.obstacle_map.publish(map)?;
