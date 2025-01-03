@@ -39,6 +39,9 @@ pub fn generate_white_map(width: u32, height: u32, resolution: f32) -> Occupancy
 pub fn generate_scan_map(width: u32, height: u32, resolution: f32, scan: &LaserScan) -> OccupancyGrid {
         let mut map = generate_white_map(width, height, resolution);
         scan_to_occupancy(&mut map, scan);
+
+        map.header = scan.header.clone();
+        map.info.map_load_time = map.header.stamp.clone();
         map
 }
 
