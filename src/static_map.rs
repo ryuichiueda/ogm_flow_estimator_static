@@ -17,16 +17,7 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
             last_map_time = map.info.map_load_time.clone();
         }
         
-        let diff = match last_map_time.nanosec >= map.info.map_load_time.nanosec {
-            true  => {
-                Time{ nanosec: last_map_time.nanosec - map.info.map_load_time.nanosec,
-                      sec: last_map_time.sec - map.info.map_load_time.sec }
-            },
-            false => {
-                Time{ nanosec: 1_000_000_000 + last_map_time.nanosec - map.info.map_load_time.nanosec,
-                      sec: last_map_time.sec - map.info.map_load_time.sec - 1}
-            },
-        };
+        let diff = time_diff(&map.info.map_load_time, &last_map_time);
 
         dbg!("{:?}", &diff);
     }
@@ -34,4 +25,13 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
     let last = buffer.last()?;
 
     Some(last.clone())
+}
+
+fn time_diff(from: &Time ,to: &Time) -> Time {
+    match to.nanosec >= from.nanosec {
+        true  => Time{ nanosec: to.nanosec - from.nanosec,
+                       sec: to.sec - from.sec },
+        false => Time{ nanosec: 1_000_000_000 + to.nanosec - from.nanosec,
+                       sec: to.sec - from.sec - 1},
+    }
 }
