@@ -62,7 +62,7 @@ impl FlowEstimatorNode {
     }
 
     fn publish_static_obstacle_map(&self, map: &OccupancyGrid) -> Result<(), rclrs::RclrsError> {
-        self.scan_map.publish(map)?;
+        self.static_obstacle_map.publish(map)?;
         /*
         let map = map::generate_scan_map(120, 120, 0.1, &scan);
         buffer.push(map.clone());
