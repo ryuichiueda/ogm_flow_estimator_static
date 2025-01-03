@@ -7,7 +7,7 @@ mod map;
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
 use nav_msgs::msg::OccupancyGrid;
-use map::StaticObstacleMap;
+//use static_map::StaticObstacleMap;
 use std::ops::Deref;
 
 struct FlowEstimatorNode {
@@ -37,7 +37,7 @@ impl FlowEstimatorNode {
         })
     }
 
-    fn republish(&self, static_obs_map: &mut StaticObstacleMap) -> Result<(), rclrs::RclrsError> {
+    fn publish_scan_map(&self, buffer: &mut Vec<OccupancyGrid>) -> Result<(), rclrs::RclrsError> {
         let scan = match self.data.lock().unwrap().deref() {
             Some(s) => s.clone(),
             None => {
@@ -46,8 +46,13 @@ impl FlowEstimatorNode {
             },
         };
 
-        static_obs_map.scan_to_occupancy(&scan);
-        self.static_obstacle_map.publish(static_obs_map.map.clone())?;
+        let map = map::generate(120, 120, 0.1, &scan);
+        buffer.push(map.clone());
+        self.static_obstacle_map.publish(map)?;
+
+        if buffer.len() > 10 {
+            buffer.remove(0);
+        }
 
         Ok(())
     }
@@ -58,13 +63,15 @@ fn main() -> Result<(), rclrs::RclrsError> {
     let republisher = Arc::new(FlowEstimatorNode::new(&context)?);
     let republisher_other_thread = Arc::clone(&republisher);
 
+    let mut map_buffer = vec![];
+
     std::thread::spawn(move || -> Result<(), rclrs::RclrsError> {
-        let mut static_obs_map = StaticObstacleMap::new(120, 120, 0.1);
 
         loop {
             use std::time::Duration;
-            std::thread::sleep(Duration::from_millis(1000));
-            republisher_other_thread.republish(&mut static_obs_map)?;
+            std::thread::sleep(Duration::from_millis(200));
+
+            republisher_other_thread.publish_scan_map(&mut map_buffer)?;
         }
     });
 
