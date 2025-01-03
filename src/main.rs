@@ -3,12 +3,12 @@
 //SPDX-License-Identifier: BSD-3-Clause
 
 mod map;
+mod scan_map;
 mod static_map;
 
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
 use nav_msgs::msg::OccupancyGrid;
-//use static_map::StaticObstacleMap;
 use std::ops::Deref;
 
 struct FlowEstimatorNode {
@@ -56,7 +56,7 @@ impl FlowEstimatorNode {
             }
         }
 
-        let map = map::generate_scan_map(120, 120, 0.1, &scan);
+        let map = scan_map::generate(120, 120, 0.1, &scan);
         buffer.push(map.clone());
         self.scan_map.publish(map)?;
 
