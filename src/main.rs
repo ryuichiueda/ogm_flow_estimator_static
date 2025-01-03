@@ -3,6 +3,7 @@
 //SPDX-License-Identifier: BSD-3-Clause
 
 mod map;
+mod static_map;
 
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
@@ -46,7 +47,7 @@ impl FlowEstimatorNode {
             },
         };
 
-        let map = map::generate(120, 120, 0.1, &scan);
+        let map = map::generate_scan_map(120, 120, 0.1, &scan);
         buffer.push(map.clone());
         self.static_obstacle_map.publish(map)?;
 
@@ -70,7 +71,6 @@ fn main() -> Result<(), rclrs::RclrsError> {
         loop {
             use std::time::Duration;
             std::thread::sleep(Duration::from_millis(200));
-
             republisher_other_thread.publish_scan_map(&mut map_buffer)?;
         }
     });
