@@ -50,6 +50,12 @@ impl FlowEstimatorNode {
             },
         };
 
+        if let Some(last_map) = buffer.last() {
+            if last_map.info.map_load_time == scan.header.stamp {
+                return Ok(());
+            }
+        }
+
         let map = map::generate_scan_map(120, 120, 0.1, &scan);
         buffer.push(map.clone());
         self.scan_map.publish(map)?;
@@ -63,15 +69,6 @@ impl FlowEstimatorNode {
 
     fn publish_static_obstacle_map(&self, map: &OccupancyGrid) -> Result<(), rclrs::RclrsError> {
         self.static_obstacle_map.publish(map)?;
-        /*
-        let map = map::generate_scan_map(120, 120, 0.1, &scan);
-        buffer.push(map.clone());
-        self.scan_map.publish(map)?;
-
-        if buffer.len() > 10 {
-            buffer.remove(0);
-        }
-*/
         Ok(())
     }
 }
