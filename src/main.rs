@@ -15,6 +15,7 @@ struct FlowEstimatorNode {
     node: Arc<rclrs::Node>,
     _sub_scan: Arc<rclrs::Subscription<LaserScan>>,
     data: Arc<Mutex<Option<LaserScan>>>,
+    scan_map: Arc<rclrs::Publisher<OccupancyGrid>>,
     static_obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
 }
 
@@ -29,11 +30,13 @@ impl FlowEstimatorNode {
             move |msg: LaserScan| { *data_cb.lock().unwrap() = Some(msg); },
         )?;
 
+        let scan_map = node.create_publisher("scan_map", rclrs::QOS_PROFILE_DEFAULT)?;
         let static_obstacle_map = node.create_publisher("static_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
         Ok(Self {
             node,
             _sub_scan,
             data,
+            scan_map,
             static_obstacle_map,
         })
     }
@@ -49,12 +52,26 @@ impl FlowEstimatorNode {
 
         let map = map::generate_scan_map(120, 120, 0.1, &scan);
         buffer.push(map.clone());
-        self.static_obstacle_map.publish(map)?;
+        self.scan_map.publish(map)?;
 
         if buffer.len() > 10 {
             buffer.remove(0);
         }
 
+        Ok(())
+    }
+
+    fn publish_static_obstacle_map(&self, map: &OccupancyGrid) -> Result<(), rclrs::RclrsError> {
+        self.scan_map.publish(map)?;
+        /*
+        let map = map::generate_scan_map(120, 120, 0.1, &scan);
+        buffer.push(map.clone());
+        self.scan_map.publish(map)?;
+
+        if buffer.len() > 10 {
+            buffer.remove(0);
+        }
+*/
         Ok(())
     }
 }
@@ -72,6 +89,10 @@ fn main() -> Result<(), rclrs::RclrsError> {
             use std::time::Duration;
             std::thread::sleep(Duration::from_millis(200));
             republisher_other_thread.publish_scan_map(&mut map_buffer)?;
+
+            if let Some(static_map) = static_map::generate(&mut map_buffer) {
+                republisher_other_thread.publish_static_obstacle_map(&static_map)?;
+            }
         }
     });
 
