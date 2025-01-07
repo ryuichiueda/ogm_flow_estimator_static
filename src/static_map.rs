@@ -9,14 +9,10 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
         return None;
     }
 
-    let mut last_map_time = Time{ nanosec: 0, sec: 0 };
+    let mut last_map_time = buffer.last().unwrap().info.map_load_time.clone();
     dbg!("-----------------------");
 
     for map in buffer.iter().rev() {
-        if last_map_time.sec == 0 {
-            last_map_time = map.info.map_load_time.clone();
-        }
-        
         let diff = time_diff(&map.info.map_load_time, &last_map_time);
 
         dbg!("{:?}", &diff);
