@@ -64,7 +64,7 @@ impl FlowEstimatorNode {
         buffer.push(map.clone());
         self.scan_map.publish(map)?;
 
-        if buffer.len() > 10 {
+        if buffer.len() > 100 {
             buffer.remove(0);
         }
 

@@ -16,9 +16,11 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
 
     let mut next = 0.0;
     let mut counter = 0;
+    let mut ok = false;
     for map in buffer.iter().rev() {
         let diff = time_diff(&last_map_time, &map.info.map_load_time);
         if diff < LIMIT_SEC {
+            ok = true;
             break;
         }
         if next < diff {
@@ -33,6 +35,10 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
         }
 
         next -= SKIP_SEC;
+    }
+
+    if ! ok {
+        return None;
     }
 
     let th = (counter*STATIC_OCCUPANCY_TH/100) as i8;

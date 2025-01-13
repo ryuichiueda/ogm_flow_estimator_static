@@ -5,12 +5,11 @@ use nav_msgs::msg::OccupancyGrid;
 
 pub fn generate(buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Option<OccupancyGrid> {
     let mut ans = buffer.last()?.clone();
-    ans.data.iter_mut().for_each(|e| *e = 50);
     subtract_static(&mut ans, static_map);
     Some(ans)
 }
 
 fn subtract_static(dynamic_map: &mut OccupancyGrid, static_map: &OccupancyGrid) {
     dynamic_map.data.iter_mut().zip(static_map.data.iter())
-        .for_each(|(d, s)| *d = *s/2);
+        .for_each(|(d, s)| if *d < *s { *d = 0; }else { *d -= *s; });
 }
