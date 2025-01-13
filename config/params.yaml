@@ -1,4 +1,0 @@
-/**:
-  ros__parameters:
-    static_map_threshold: 5.0
-    static_map_cycle: 1.0

@@ -5,6 +5,7 @@
 mod map;
 mod scan_map;
 mod static_map;
+mod dynamic_map;
 
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
@@ -17,6 +18,7 @@ struct FlowEstimatorNode {
     data: Arc<Mutex<Option<LaserScan>>>,
     scan_map: Arc<rclrs::Publisher<OccupancyGrid>>,
     static_obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
+    dynamic_obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
 }
 
 impl FlowEstimatorNode {
@@ -32,12 +34,14 @@ impl FlowEstimatorNode {
 
         let scan_map = node.create_publisher("scan_map", rclrs::QOS_PROFILE_DEFAULT)?;
         let static_obstacle_map = node.create_publisher("static_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
+        let dynamic_obstacle_map = node.create_publisher("dynamic_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
         Ok(Self {
             node,
             _sub_scan,
             data,
             scan_map,
             static_obstacle_map,
+            dynamic_obstacle_map,
         })
     }
 
@@ -71,6 +75,11 @@ impl FlowEstimatorNode {
         self.static_obstacle_map.publish(map)?;
         Ok(())
     }
+
+    fn publish_dynamic_obstacle_map(&self, map: &OccupancyGrid) -> Result<(), rclrs::RclrsError> {
+        self.dynamic_obstacle_map.publish(map)?;
+        Ok(())
+    }
 }
 
 fn main() -> Result<(), rclrs::RclrsError> {
@@ -89,6 +98,10 @@ fn main() -> Result<(), rclrs::RclrsError> {
 
             if let Some(static_map) = static_map::generate(&mut map_buffer) {
                 republisher_other_thread.publish_static_obstacle_map(&static_map)?;
+            }
+
+            if let Some(dynamic_map) = dynamic_map::generate(&mut map_buffer) {
+                republisher_other_thread.publish_dynamic_obstacle_map(&dynamic_map)?;
             }
         }
     });
