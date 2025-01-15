@@ -6,35 +6,33 @@ use nav_msgs::msg::OccupancyGrid;
 
 #[derive(Default, Debug)]
 pub struct Estimator {
-    buffer: Vec<(f64, OccupancyGrid)>,
+    buffer: Vec<OccupancyGrid>,
 }
 
 impl Estimator {
-    pub fn generate(&mut self, buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Option<OccupancyGrid> {
-        const LIMIT_SEC: f64 = -0.9;
-        const SKIP: usize = 1;
-    
-        let mut ans = buffer.last()?.clone();
-        let last_map_time = ans.info.map_load_time.clone();
-    
-        Self::subtract_static(&mut ans, static_map);
-    
-        let mut count = 0;
-        for (i, map) in buffer.iter().rev().enumerate() {
-            if i%SKIP != 0 {
-                continue;
-            }
-    
-            let diff = map::time_diff(&last_map_time, &map.info.map_load_time);
-            if diff < LIMIT_SEC {
-                break;
-            }
-            dbg!("{:?}", &diff);
-    
-            count += 1;
+    pub fn generate(&mut self, raw_buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Option<OccupancyGrid> {
+        const LIMIT_SEC: f64 = 0.9;
+        const MIN_INTERVAL: f64 = 0.15;
+
+        let mut now = raw_buffer.last()?.clone();
+
+        if self.buffer.is_empty() {
+            Self::subtract_static(&mut now, static_map);
+            self.buffer.push(now);
+            return None;
         }
+
+        let mut prev = self.buffer.last()?.clone();
+        let diff = map::time_diff(&prev.info.map_load_time, &now.info.map_load_time);
+        if diff < MIN_INTERVAL {
+            return None;
+        }
+
+        Self::subtract_static(&mut now, static_map);
+        self.buffer.retain(|b| map::time_diff(&b.info.map_load_time, &now.info.map_load_time) < LIMIT_SEC );
+        self.buffer.push(now);
     
-        Some(ans)
+        Some(self.buffer.last()?.clone())
     }
     
     fn subtract_static(dynamic_map: &mut OccupancyGrid, static_map: &OccupancyGrid) {
