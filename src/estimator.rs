@@ -3,6 +3,8 @@
 
 use crate::map;
 use nav_msgs::msg::OccupancyGrid;
+use rand;
+use rand::Rng;
 
 #[derive(Default, Debug)]
 pub struct Estimator {
@@ -42,10 +44,15 @@ impl Estimator {
 
     fn sampling(&mut self, num: usize) -> Vec<usize> {
         let map = &self.buffer[0];
-        let mut i_cell = 0;
         let sum: usize = map.data.iter().map(|d| *d as usize).sum();
-        let step = (sum as f64 / num as f64);
-        dbg!("{:?}", &step);
+        let step = sum as f64 / num as f64;
+
+        let mut i_cell = 0;
+        let mut rng = rand::thread_rng();
+        let mut accum: f64 = rng.gen::<f64>() * step;
+
+        dbg!("{:?}", &accum, &step);
+        //while  < 
 
         vec![]
     }

@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-yaml-rust2 = "0.9"
+#yaml-rust2 = "0.9"
+rand = "0.8"
 rclrs = "*"
 std_msgs = "*"
 sensor_msgs = "*"
