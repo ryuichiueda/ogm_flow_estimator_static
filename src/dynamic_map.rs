@@ -5,19 +5,27 @@ use crate::map;
 use nav_msgs::msg::OccupancyGrid;
 
 pub fn generate(buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Option<OccupancyGrid> {
-    const LIMIT_SEC: f64 = -1.0;
+    const LIMIT_SEC: f64 = -0.9;
+    const SKIP: usize = 1;
 
     let mut ans = buffer.last()?.clone();
     let last_map_time = ans.info.map_load_time.clone();
 
     subtract_static(&mut ans, static_map);
 
-    for map in buffer.iter().rev() {
-        let diff = map::time_diff(&last_map_time, &map.info.map_load_time);
+    let mut count = 0;
+    for (i, map) in buffer.iter().rev().enumerate() {
+        if i%SKIP != 0 {
+            continue;
+        }
 
+        let diff = map::time_diff(&last_map_time, &map.info.map_load_time);
         if diff < LIMIT_SEC {
             break;
         }
+        dbg!("{:?}", &diff);
+
+        count += 1;
     }
 
     Some(ans)
