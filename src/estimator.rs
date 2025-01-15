@@ -44,17 +44,27 @@ impl Estimator {
 
     fn sampling(&mut self, num: usize) -> Vec<usize> {
         let map = &self.buffer[0];
-        let sum: usize = map.data.iter().map(|d| *d as usize).sum();
-        let step = sum as f64 / num as f64;
+        let sum: f64 = map.data.iter().map(|d| *d as usize).sum::<usize>() as f64;
+        let step = sum / num as f64;
+
+        let mut ans = vec![];
 
         let mut i_cell = 0;
         let mut rng = rand::thread_rng();
-        let mut accum: f64 = rng.gen::<f64>() * step;
+        let mut head: f64 = rng.gen::<f64>() * step;
+        let mut accum: usize = 0;
 
-        dbg!("{:?}", &accum, &step);
-        //while  < 
+        while head < sum && i_cell < map.data.len() {
+            accum += map.data[i_cell] as usize;
+            while head < accum as f64 {
+                ans.push(i_cell);
+                head += step;
+            }
 
-        vec![]
+            i_cell += 1;
+        }
+
+        ans
     }
 
     fn calculation(&mut self) -> Option<OccupancyGrid> {
