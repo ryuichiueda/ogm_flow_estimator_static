@@ -68,9 +68,13 @@ impl Estimator {
     }
 
     fn calculation(&mut self) -> Option<OccupancyGrid> {
-        self.sampling(100);
+        let sample = self.sampling(100);
     
-        let ans = self.buffer[0].clone();
+        let mut ans = self.buffer[0].clone();
+        ans.data.iter_mut().for_each(|d| *d = 0 );
+        for s in sample {
+            ans.data[s] += 1;
+        }
         Some(ans)
     }
 }
