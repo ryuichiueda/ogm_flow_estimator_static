@@ -40,3 +40,11 @@ pub fn time_diff(from: &Time ,to: &Time) -> f64 {
     let nanosec_diff = to.nanosec as f64 - from.nanosec as f64;
     sec_diff + nanosec_diff/1_000_000_000.0
 }
+
+pub fn ixiy_to_index(ix: i32, iy: i32, width: u32, height: u32) -> Option<usize> {
+    if ix < 0 || ix >= width as i32 || iy < 0 || iy >= height as i32 {
+        return None;
+    }
+
+    Some(iy as usize * width as usize + ix as usize)
+}

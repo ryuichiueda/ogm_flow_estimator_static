@@ -40,7 +40,10 @@ impl Estimator {
             .for_each(|(d, s)| if *d < *s { *d = 0; }else { *d -= *s; });
     }
 
-    pub fn calculation(&mut self) -> Option<OccupancyGrid> {
+    fn sampling(&mut self, num: usize) {
+    }
+
+    fn calculation(&mut self) -> Option<OccupancyGrid> {
         let start = &self.buffer[0];
 
         Some(start.clone())

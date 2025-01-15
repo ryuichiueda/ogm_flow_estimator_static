@@ -28,17 +28,17 @@ fn scan_to_occupancy(map: &mut OccupancyGrid, scan: &LaserScan) {
     }
 }
 
-fn plot(map: &mut OccupancyGrid, x: f64, y: f64, val: i8) {
+fn plot(map: &mut OccupancyGrid, x: f64, y: f64, val: i8) -> Option<()> {
     let res = map.info.resolution as f64;
     let map_x = ((x - map.info.origin.position.x)/res).floor() as i32;
     let map_y = ((y - map.info.origin.position.y)/res).floor() as i32;
 
     if map_x < 0 || map_y < 0 {
-        return;
+        return Some(());
     }
 
-    let index = (map_y as usize)*(map.info.width as usize)
-                + (map_x as usize);
+    let index = map::ixiy_to_index(map_x, map_y, map.info.width, map.info.height)?;
 
     map.data[index] = val;
+    Some(())
 }
