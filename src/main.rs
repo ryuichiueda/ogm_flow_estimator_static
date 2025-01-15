@@ -2,11 +2,12 @@
 //SPDX-FileCopyrightText: Ryuichi Ueda <ryuichiueda@gmail.com>
 //SPDX-License-Identifier: BSD-3-Clause
 
+mod estimator;
 mod map;
 mod scan_map;
 mod static_map;
-mod dynamic_map;
 
+use crate::estimator::Estimator;
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
 use nav_msgs::msg::OccupancyGrid;
@@ -90,6 +91,7 @@ fn main() -> Result<(), rclrs::RclrsError> {
     let mut map_buffer = vec![];
 
     std::thread::spawn(move || -> Result<(), rclrs::RclrsError> {
+        let mut estimator = Estimator::default();
 
         loop {
             use std::time::Duration;
@@ -98,7 +100,7 @@ fn main() -> Result<(), rclrs::RclrsError> {
 
             if let Some(static_map) = static_map::generate(&mut map_buffer) {
                 republisher_other_thread.publish_static_obstacle_map(&static_map)?;
-                if let Some(dynamic_map) = dynamic_map::generate(&mut map_buffer, &static_map) {
+                if let Some(dynamic_map) = estimator.generate(&mut map_buffer, &static_map) {
                     republisher_other_thread.publish_dynamic_obstacle_map(&dynamic_map)?;
                 }
             }
