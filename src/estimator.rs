@@ -40,12 +40,20 @@ impl Estimator {
             .for_each(|(d, s)| if *d < *s { *d = 0; }else { *d -= *s; });
     }
 
-    fn sampling(&mut self, num: usize) {
+    fn sampling(&mut self, num: usize) -> Vec<usize> {
+        let map = &self.buffer[0];
+        let mut i_cell = 0;
+        let sum: usize = map.data.iter().map(|d| *d as usize).sum();
+        let step = (sum as f64 / num as f64);
+        dbg!("{:?}", &step);
+
+        vec![]
     }
 
     fn calculation(&mut self) -> Option<OccupancyGrid> {
-        let start = &self.buffer[0];
-
-        Some(start.clone())
+        self.sampling(100);
+    
+        let ans = self.buffer[0].clone();
+        Some(ans)
     }
 }
