@@ -1,7 +1,7 @@
 //SPDX-FileCopyrightText: Ryuichi Ueda <ryuichiueda@gmail.com>
 //SPDX-License-Identifier: BSD-3-Clause
 
-use builtin_interfaces::msg::Time;
+use crate::map;
 use nav_msgs::msg::OccupancyGrid;
 
 pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
@@ -18,7 +18,7 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
     let mut counter = 0;
     let mut ok = false;
     for map in buffer.iter().rev() {
-        let diff = time_diff(&last_map_time, &map.info.map_load_time);
+        let diff = map::time_diff(&last_map_time, &map.info.map_load_time);
         if diff < LIMIT_SEC {
             ok = true;
             break;
@@ -46,17 +46,3 @@ pub fn generate(buffer: &Vec<OccupancyGrid>) -> Option<OccupancyGrid> {
     Some(ans)
 }
 
-fn time_diff(from: &Time ,to: &Time) -> f64 {
-    let sec_diff = to.sec as f64 - from.sec as f64;
-    let nanosec_diff = to.nanosec as f64 - from.nanosec as f64;
-
-    sec_diff + nanosec_diff/1_000_000_000.0
-    /*
-    match to.nanosec >= from.nanosec {
-        true  => Time{ nanosec: to.nanosec - from.nanosec,
-                       sec: to.sec - from.sec },
-        false => Time{ nanosec: 1_000_000_000 + to.nanosec - from.nanosec,
-                       sec: to.sec - from.sec - 1},
-    }
-    */
-}
