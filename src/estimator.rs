@@ -17,6 +17,13 @@ pub struct Trajectory {
     indexes: Vec<usize>,
 }
 
+impl Trajectory {
+    pub fn add(&mut self, next_map: &OccupancyGrid, range: usize) -> Result<(), Error> {
+        let last_index = self.indexes.last().ok_or(Error::TrajectoryInit)?;
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub enum Error {
     NoBuffer,
@@ -78,22 +85,31 @@ impl Estimator {
         ans
     }
 
-    fn update_trajectory(&mut self, index: usize) -> Result<(), Error> {
+    fn pick_next_indexes(&self, cell_index: usize) -> Vec<usize> {
+        vec![]
+    }
+
+    fn update_trajectory(&mut self, map_index: usize) -> Result<(), Error> {
         const RESOLUTION: f64 = 0.1;  // TODO: unify
         const MAX_SPEED: f64 = 2.5;
 
-        let map = &self.buffer[index];
-        let prev_map = &self.buffer[index-1];
+        let map = &self.buffer[map_index];
+        let prev_map = &self.buffer[map_index-1];
         let diff = map::time_diff(&prev_map.info.map_load_time, &map.info.map_load_time);
 
-        let max_traveling_cells = MAX_SPEED * diff / RESOLUTION;
+        let max_traveling_cells = (MAX_SPEED * diff / RESOLUTION).ceil() as usize;
 
         dbg!("{:?}", &max_traveling_cells);
 
         for traj in self.trajectories.iter_mut() {
-            let last_index = traj.indexes.last().ok_or(Error::TrajectoryInit)?;
-            // TODO: FIND BLACK CELL AROUND THE last_index
+            traj.add(&map, max_traveling_cells);
         }
+        /*
+        for traj in &self.trajectories.iter_mut() {
+            let last_index = traj.indexes.last().ok_or(Error::TrajectoryInit)?;
+            let cands = self.pick_next_indexes(*last_index);
+            // TODO: FIND BLACK CELL AROUND THE last_index
+        }*/
         Ok(())
     }
 
