@@ -137,19 +137,17 @@ impl Estimator {
         self.trajectories = self.sampling(100).iter()
             .map(|s| Trajectory { indexes: vec![*s]}).collect();
 
-        self.update_trajectory(1)?;
+        for i in 1..self.buffer.len() {
+            self.update_trajectory(i)?;
+        }
 
         let mut ans = self.buffer[0].clone();
         ans.data.iter_mut().for_each(|d| *d = 0 );
 
         for t in &self.trajectories {
-            let index = t.indexes[0];
-            ans.data[index] = 50; 
-            if t.indexes.len() < 2 {
-                continue;
+            for (t, index) in t.indexes.iter().enumerate() {
+                ans.data[*index] = (t as i8 +1)*10;
             }
-            let index = t.indexes[1];
-            ans.data[index] = 100; 
         }
 
         Ok(Some(ans))
