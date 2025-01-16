@@ -49,11 +49,11 @@ pub fn ixiy_to_index(ix: i32, iy: i32, width: u32, height: u32) -> Option<usize>
     Some(iy as usize * width as usize + ix as usize)
 }
 
-pub fn index_to_ixiy(index: usize, width: u32, height: u32) -> Option<(usize, usize)> {
-    let ix = index%(width as usize);
-    let iy = index/(width as usize);
+pub fn index_to_ixiy(index: usize, width: u32, height: u32) -> Option<(i32, i32)> {
+    let ix: i32 = (index as i32)%(width as i32);
+    let iy: i32 = (index as i32)/(width as i32);
 
-    if ix < 0 || ix >= width as usize || iy < 0 || iy >= height as usize {
+    if ix < 0 || ix >= width as i32 || iy < 0 || iy >= height as i32 {
         return None;
     }
 

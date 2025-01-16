@@ -5,6 +5,8 @@ use crate::map;
 use nav_msgs::msg::OccupancyGrid;
 use rand;
 use rand::Rng;
+use rand::seq::SliceRandom;
+use rand::rngs::ThreadRng;
 
 #[derive(Default, Debug)]
 pub struct Estimator {
@@ -18,12 +20,29 @@ pub struct Trajectory {
 }
 
 impl Trajectory {
-    pub fn add(&mut self, next_map: &OccupancyGrid, range: usize) -> Result<(), Error> {
+    pub fn add(&mut self, next_map: &OccupancyGrid, range: i32, rng: &mut ThreadRng) -> Result<(), Error> {
+        let mut ans = vec![];
         let last_index = self.indexes.last().ok_or(Error::TrajectoryInit)?;
-        let (x, y) = map::index_to_ixiy(*last_index, next_map.info.width, next_map.info.height)
+        let (cx, cy) = map::index_to_ixiy(*last_index, next_map.info.width, next_map.info.height)
                      .ok_or(Error::OutOfMap)?;
 
-        dbg!("{:?} {:?}", x, y);
+        for ix in (cx - range)..(cx + range + 1) {
+            for iy in (cy - range)..(cy + range + 1) {
+                if let Some(index) = map::ixiy_to_index(ix, iy, next_map.info.width, next_map.info.height) {
+                    if next_map.data[index] > 0 {
+                        ans.push(index);
+                    }
+                }
+            }
+        }
+
+        if ans.is_empty() {
+            return Err(Error::NotFound);
+        }
+
+        let selected = ans[rng.gen::<usize>()%ans.len()];
+        self.indexes.push(selected);
+
         Ok(())
     }
 }
@@ -33,6 +52,7 @@ pub enum Error {
     NoBuffer,
     TrajectoryInit,
     OutOfMap,
+    NotFound,
 }
 
 impl Estimator {
@@ -102,12 +122,13 @@ impl Estimator {
         let prev_map = &self.buffer[map_index-1];
         let diff = map::time_diff(&prev_map.info.map_load_time, &map.info.map_load_time);
 
-        let max_traveling_cells = (MAX_SPEED * diff / RESOLUTION).ceil() as usize;
+        let max_traveling_cells = (MAX_SPEED * diff / RESOLUTION).ceil() as i32;
 
         dbg!("{:?}", &max_traveling_cells);
+        let mut rng = rand::thread_rng();
 
         for traj in self.trajectories.iter_mut() {
-            traj.add(&map, max_traveling_cells);
+            traj.add(&map, max_traveling_cells, &mut rng);
         }
         Ok(())
     }
