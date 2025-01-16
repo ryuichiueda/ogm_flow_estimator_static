@@ -100,8 +100,11 @@ fn main() -> Result<(), rclrs::RclrsError> {
 
             if let Some(static_map) = static_map::generate(&mut map_buffer) {
                 republisher_other_thread.publish_static_obstacle_map(&static_map)?;
-                if let Some(dynamic_map) = estimator.generate(&mut map_buffer, &static_map) {
-                    republisher_other_thread.publish_dynamic_obstacle_map(&dynamic_map)?;
+                match estimator.generate(&mut map_buffer, &static_map) {
+                    Ok(Some(dynamic_map)) => 
+                        republisher_other_thread.publish_dynamic_obstacle_map(&dynamic_map)?,
+                    Ok(None) => eprintln!("waiting ..."),
+                    Err(e)   => eprintln!("{:?}", &e),
                 }
             }
         }

@@ -9,25 +9,36 @@ use rand::Rng;
 #[derive(Default, Debug)]
 pub struct Estimator {
     buffer: Vec<OccupancyGrid>,
+    trajectories: Vec<Trajectory>,
+}
+
+#[derive(Default, Debug)]
+pub struct Trajectory {
+    indexes: Vec<usize>,
+}
+
+#[derive(Debug)]
+pub enum Error {
+    NoBuffer,
+    TrajectoryInit,
 }
 
 impl Estimator {
-    pub fn generate(&mut self, raw_buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Option<OccupancyGrid> {
+    pub fn generate(&mut self, raw_buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Result<Option<OccupancyGrid>, Error> {
         const LIMIT_SEC: f64 = 0.9;
         const MIN_INTERVAL: f64 = 0.15;
 
-        let mut now = raw_buffer.last()?.clone();
-
+        let mut now = raw_buffer.last().ok_or(Error::NoBuffer)?.clone();
         if self.buffer.is_empty() {
             Self::subtract_static(&mut now, static_map);
             self.buffer.push(now);
-            return None;
+            return Ok(None);
         }
 
-        let prev = self.buffer.last()?.clone();
+        let prev = self.buffer.last().unwrap().clone();
         let diff = map::time_diff(&prev.info.map_load_time, &now.info.map_load_time);
         if diff < MIN_INTERVAL {
-            return None;
+            return Ok(None);
         }
 
         Self::subtract_static(&mut now, static_map);
@@ -67,14 +78,37 @@ impl Estimator {
         ans
     }
 
-    fn calculation(&mut self) -> Option<OccupancyGrid> {
-        let sample = self.sampling(100);
-    
+    fn update_trajectory(&mut self, index: usize) -> Result<(), Error> {
+        const RESOLUTION: f64 = 0.1;  // TODO: unify
+        const MAX_SPEED: f64 = 2.5;
+
+        let map = &self.buffer[index];
+        let prev_map = &self.buffer[index-1];
+        let diff = map::time_diff(&prev_map.info.map_load_time, &map.info.map_load_time);
+
+        let max_traveling_cells = MAX_SPEED * diff / RESOLUTION;
+
+        dbg!("{:?}", &max_traveling_cells);
+
+        for traj in self.trajectories.iter_mut() {
+            let last_index = traj.indexes.last().ok_or(Error::TrajectoryInit)?;
+            // TODO: FIND BLACK CELL AROUND THE last_index
+        }
+        Ok(())
+    }
+
+    fn calculation(&mut self) -> Result<Option<OccupancyGrid>, Error> {
+        self.trajectories = self.sampling(100).iter()
+            .map(|s| Trajectory { indexes: vec![*s]}).collect();
+
+        self.update_trajectory(1)?;
+
         let mut ans = self.buffer[0].clone();
+        /*
         ans.data.iter_mut().for_each(|d| *d = 0 );
         for s in sample {
             ans.data[s] += 1;
-        }
-        Some(ans)
+        }*/
+        Ok(Some(ans))
     }
 }
