@@ -1,4 +1,4 @@
-# Open Grid Map Motion Estimator (Static Version)
+# Open Grid Map Flow Estimator (Static Version)
 
 Motion estimator on an occupied grid map with a static viewpoint
 
