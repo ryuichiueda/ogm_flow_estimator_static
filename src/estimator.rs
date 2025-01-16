@@ -19,7 +19,8 @@ pub struct Trajectory {
 }
 
 impl Trajectory {
-    pub fn add(&mut self, next_map: &OccupancyGrid, range: i32, rng: &mut ThreadRng) -> Result<(), Error> {
+    pub fn add(&mut self, next_map: &OccupancyGrid, range: i32,
+               rng: &mut ThreadRng) -> Result<(), Error> {
         let mut ans = vec![];
         let last_index = self.indexes.last().ok_or(Error::TrajectoryInit)?;
         let (cx, cy) = map::index_to_ixiy(*last_index, next_map.info.width, next_map.info.height)
@@ -119,7 +120,6 @@ impl Estimator {
 
         let max_traveling_cells = (MAX_SPEED * diff / RESOLUTION).ceil() as i32;
 
-        dbg!("{:?}", &max_traveling_cells);
         let mut rng = rand::thread_rng();
 
         for traj in self.trajectories.iter_mut() {
@@ -128,23 +128,38 @@ impl Estimator {
         Ok(())
     }
 
+    fn forecast(&mut self, from: f64, to: f64) -> Result<Option<OccupancyGrid>, Error> {
+        let mut ans = self.buffer[0].clone();
+        ans.data.iter_mut().for_each(|d| *d = 0 );
+
+        let start_time = map::time(&self.buffer[0]);
+        let end_time = map::time(&self.buffer[self.buffer.len()-1]);
+
+        for t in &self.trajectories {
+            let start = t.indexes[0];
+            let last = t.indexes.last().unwrap();
+
+            dbg!("{:?} {:?} {:?}", &start, &last, end_time - start_time);
+            /*
+            for (t, index) in t.indexes.iter().enumerate() {
+                ans.data[*index] = (t as i8 +1)*10;
+            }*/
+        }
+        Ok(Some(ans))
+    }
+
     fn calculation(&mut self) -> Result<Option<OccupancyGrid>, Error> {
+        let tm = &self.buffer[0].info.map_load_time;
+        let time = tm.sec as f64 + (tm.nanosec as f64)/1_000_000_000 as f64;
+
         self.trajectories = self.sampling(100).iter()
             .map(|s| Trajectory { indexes: vec![*s]}).collect();
 
         for i in 1..self.buffer.len() {
             self.update_trajectory(i)?;
+            self.trajectories.retain(|t| t.indexes.len() == i+1);
         }
 
-        let mut ans = self.buffer[0].clone();
-        ans.data.iter_mut().for_each(|d| *d = 0 );
-
-        for t in &self.trajectories {
-            for (t, index) in t.indexes.iter().enumerate() {
-                ans.data[*index] = (t as i8 +1)*10;
-            }
-        }
-
-        Ok(Some(ans))
+        self.forecast(2.0, 10.0)
     }
 }

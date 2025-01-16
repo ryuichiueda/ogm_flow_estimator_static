@@ -59,3 +59,10 @@ pub fn index_to_ixiy(index: usize, width: u32, height: u32) -> Option<(i32, i32)
 
     Some((ix, iy))
 }
+
+pub fn time(map: &OccupancyGrid) -> f64 {
+    let sec = map.info.map_load_time.sec as f64;
+    let nanosec = map.info.map_load_time.nanosec as f64;
+
+    sec + nanosec/(1_000_000_000 as f64)
+}
