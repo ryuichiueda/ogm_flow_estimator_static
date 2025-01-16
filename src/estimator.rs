@@ -6,6 +6,7 @@ use nav_msgs::msg::OccupancyGrid;
 use rand;
 use rand::Rng;
 use rand::rngs::ThreadRng;
+use chrono::Local;
 
 #[derive(Default, Debug)]
 pub struct Estimator {
@@ -128,29 +129,56 @@ impl Estimator {
         Ok(())
     }
 
-    fn forecast(&mut self, from: f64, to: f64) -> Result<Option<OccupancyGrid>, Error> {
+    fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<OccupancyGrid>, Error> {
         let mut ans = self.buffer[0].clone();
         ans.data.iter_mut().for_each(|d| *d = 0 );
 
+        let width = self.buffer[0].info.width;
+        let height = self.buffer[0].info.height;
+
         let start_time = map::time(&self.buffer[0]);
         let end_time = map::time(&self.buffer[self.buffer.len()-1]);
+        let dt = end_time - start_time;
 
-        for t in &self.trajectories {
-            let start = t.indexes[0];
-            let last = t.indexes.last().unwrap();
+        for traj in &self.trajectories {
+            let start = traj.indexes[0];
+            let end = traj.indexes.last().unwrap();
 
-            dbg!("{:?} {:?} {:?}", &start, &last, end_time - start_time);
-            /*
-            for (t, index) in t.indexes.iter().enumerate() {
-                ans.data[*index] = (t as i8 +1)*10;
-            }*/
+            let (sx, sy) = map::index_to_ixiy(start, width, height).ok_or(Error::OutOfMap)?;
+            let (ex, ey) = map::index_to_ixiy(*end, width, height).ok_or(Error::OutOfMap)?;
+
+            let dx = ex as f64 - sx as f64;
+            let dy = ey as f64 - sy as f64;
+
+            let mut t = from;
+            while t < to {
+                let x_dist = dx * t / dt;
+                let y_dist = dy * t / dt;
+
+                let forecast_x = ex as i32 + x_dist as i32;
+                let forecast_y = ey as i32 + y_dist as i32;
+
+                if let Some(index) = map::ixiy_to_index(forecast_x, forecast_y, width, height) {
+                    ans.data[index] += 1;
+                }
+
+                t += delta;
+            }
         }
+
+        let max = ans.data.iter().max().unwrap().clone();
+        if max == 0 {
+            return Ok(None);
+        }
+        ans.data.iter_mut().for_each(|d| *d = ((*d as i32)*100 / max as i32) as i8 );
+
         Ok(Some(ans))
     }
 
     fn calculation(&mut self) -> Result<Option<OccupancyGrid>, Error> {
+        dbg!("START {:?}", Local::now());
         let tm = &self.buffer[0].info.map_load_time;
-        let time = tm.sec as f64 + (tm.nanosec as f64)/1_000_000_000 as f64;
+        //let time = tm.sec as f64 + (tm.nanosec as f64)/1_000_000_000 as f64;
 
         self.trajectories = self.sampling(100).iter()
             .map(|s| Trajectory { indexes: vec![*s]}).collect();
@@ -160,6 +188,8 @@ impl Estimator {
             self.trajectories.retain(|t| t.indexes.len() == i+1);
         }
 
-        self.forecast(2.0, 10.0)
+        let ans = self.forecast(2.0, 10.0, 0.2);
+        dbg!("END {:?}", Local::now());
+        ans
     }
 }
