@@ -20,6 +20,10 @@ pub struct Trajectory {
 impl Trajectory {
     pub fn add(&mut self, next_map: &OccupancyGrid, range: usize) -> Result<(), Error> {
         let last_index = self.indexes.last().ok_or(Error::TrajectoryInit)?;
+        let (x, y) = map::index_to_ixiy(*last_index, next_map.info.width, next_map.info.height)
+                     .ok_or(Error::OutOfMap)?;
+
+        dbg!("{:?} {:?}", x, y);
         Ok(())
     }
 }
@@ -28,6 +32,7 @@ impl Trajectory {
 pub enum Error {
     NoBuffer,
     TrajectoryInit,
+    OutOfMap,
 }
 
 impl Estimator {
@@ -104,12 +109,6 @@ impl Estimator {
         for traj in self.trajectories.iter_mut() {
             traj.add(&map, max_traveling_cells);
         }
-        /*
-        for traj in &self.trajectories.iter_mut() {
-            let last_index = traj.indexes.last().ok_or(Error::TrajectoryInit)?;
-            let cands = self.pick_next_indexes(*last_index);
-            // TODO: FIND BLACK CELL AROUND THE last_index
-        }*/
         Ok(())
     }
 
