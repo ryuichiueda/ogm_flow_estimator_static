@@ -140,11 +140,18 @@ impl Estimator {
         self.update_trajectory(1)?;
 
         let mut ans = self.buffer[0].clone();
-        /*
         ans.data.iter_mut().for_each(|d| *d = 0 );
-        for s in sample {
-            ans.data[s] += 1;
-        }*/
+
+        for t in &self.trajectories {
+            let index = t.indexes[0];
+            ans.data[index] = 50; 
+            if t.indexes.len() < 2 {
+                continue;
+            }
+            let index = t.indexes[1];
+            ans.data[index] = 100; 
+        }
+
         Ok(Some(ans))
     }
 }
