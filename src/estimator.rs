@@ -5,7 +5,6 @@ use crate::map;
 use nav_msgs::msg::OccupancyGrid;
 use rand;
 use rand::Rng;
-use rand::seq::SliceRandom;
 use rand::rngs::ThreadRng;
 
 #[derive(Default, Debug)]
@@ -110,10 +109,6 @@ impl Estimator {
         ans
     }
 
-    fn pick_next_indexes(&self, cell_index: usize) -> Vec<usize> {
-        vec![]
-    }
-
     fn update_trajectory(&mut self, map_index: usize) -> Result<(), Error> {
         const RESOLUTION: f64 = 0.1;  // TODO: unify
         const MAX_SPEED: f64 = 2.5;
@@ -128,7 +123,7 @@ impl Estimator {
         let mut rng = rand::thread_rng();
 
         for traj in self.trajectories.iter_mut() {
-            traj.add(&map, max_traveling_cells, &mut rng);
+            let _ = traj.add(&map, max_traveling_cells, &mut rng);
         }
         Ok(())
     }
