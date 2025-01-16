@@ -1,6 +1,8 @@
 # ogm_flow_estimator_static
 
-Flow estimation algorithm on an occupancy grid map
+Motion estimator on an occupied grid map with a static viewpoint
+
+![](./img/demo.png)
 
 ## Required software
 
