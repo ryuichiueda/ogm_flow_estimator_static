@@ -11,7 +11,7 @@ This is a ROS 2 repository using [ros2_rust](https://github.com/ros2-rust/ros2_r
 
 ### node and its interfaces
 
-As the author is not used to it, parameters and names of topics are fixed at present.
+As the author is not used to `ros2_rust`, parameters and names of topics are fixed at present.
 
 #### `flow_estimator`
 
