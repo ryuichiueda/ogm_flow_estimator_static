@@ -19,6 +19,8 @@ As the author is not used to `ros2_rust`, parameters and names of topics are fix
     * `/scan`: scan data from 2D LiDAR
 * topic for publising
     * `/scan_map`: an occupancy grid map simply reflecting the latest scan
+    * `/static_obstacle_map`: an occupancy grid map of static objects
+    * `/dynamic_obstacle_map`: an occupancy grid map of estimated positions of moving objects
 
 ### required topic
 
