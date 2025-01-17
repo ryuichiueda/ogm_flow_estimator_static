@@ -6,7 +6,13 @@ Motion estimator on an occupied grid map with a static viewpoint
 
 ## How to use
 
-This is a ROS 2 repository using [ros2_rust](https://github.com/ros2-rust/ros2_rust). 
+This is a ROS 2 repository using [ros2_rust](https://github.com/ros2-rust/ros2_rust). The way of installation is based on the manual or `ros2_rust`.
+
+As the author is not used to it, parameters and names of topics are fixed at present.
+
+### required topic
+
+* `/scan`: 
 
 ## Required software
 
