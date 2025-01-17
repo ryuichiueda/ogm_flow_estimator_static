@@ -1,4 +1,4 @@
-# Open Grid Map Flow Estimator (Static Version)
+# Occupancy Grid Map Flow Estimator (Static Version)
 
 Concise motion estimator on an occupied grid map with a static viewpoint, whose basic algorithm has been presented on a domestic conference. 
 (I will present it in some international conference with some improvement.)
