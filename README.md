@@ -30,3 +30,5 @@ As the author is not used to `ros2_rust`, parameters and names of topics are fix
 ## References
 
 * https://www.docswell.com/s/ryuichiueda/ZEX11D-si2024
+
+© 2025 Ryuichi Ueda
