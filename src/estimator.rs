@@ -130,6 +130,7 @@ impl Estimator {
     }
 
     fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<OccupancyGrid>, Error> {
+        let mut rng = rand::thread_rng();
         let mut ans = self.buffer[0].clone();
         ans.data.iter_mut().for_each(|d| *d = 0 );
 
@@ -147,16 +148,18 @@ impl Estimator {
             let (sx, sy) = map::index_to_ixiy(start, width, height).ok_or(Error::OutOfMap)?;
             let (ex, ey) = map::index_to_ixiy(*end, width, height).ok_or(Error::OutOfMap)?;
 
-            let dx = ex as f64 - sx as f64;
-            let dy = ey as f64 - sy as f64;
-
             let mut t = from;
             while t < to {
-                let x_dist = dx * t / dt;
-                let y_dist = dy * t / dt;
+                let sx = sx as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
+                let sy = sy as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
+                let ex = ex as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
+                let ey = ey as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
 
-                let forecast_x = ex as i32 + x_dist as i32;
-                let forecast_y = ey as i32 + y_dist as i32;
+                let x_dist = (ex - sx) * t / dt;
+                let y_dist = (ey - sy) * t / dt;
+
+                let forecast_x = (ex as f64 + x_dist).floor() as i32;
+                let forecast_y = (ey as f64 + y_dist).floor() as i32;
 
                 if let Some(index) = map::ixiy_to_index(forecast_x, forecast_y, width, height) {
                     ans.data[index] += 1;
@@ -168,7 +171,8 @@ impl Estimator {
 
         let max = ans.data.iter().max().unwrap().clone();
         if max == 0 {
-            return Ok(None);
+            ans.data.iter_mut().for_each(|d| *d = 0 );
+            return Ok(Some(ans));
         }
         ans.data.iter_mut().for_each(|d| *d = ((*d as i32)*100 / max as i32) as i8 );
 
@@ -177,8 +181,7 @@ impl Estimator {
 
     fn calculation(&mut self) -> Result<Option<OccupancyGrid>, Error> {
         dbg!("START {:?}", Local::now());
-        let tm = &self.buffer[0].info.map_load_time;
-        //let time = tm.sec as f64 + (tm.nanosec as f64)/1_000_000_000 as f64;
+//        let tm = &self.buffer[0].info.map_load_time;
 
         self.trajectories = self.sampling(100).iter()
             .map(|s| Trajectory { indexes: vec![*s]}).collect();
