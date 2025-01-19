@@ -147,14 +147,6 @@ impl Estimator {
         marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
         marker_template.header.frame_id = "base_scan".to_string();
 
-        /*
-       let clock = Clock::system();
-       let now = clock.now();
-       let nanosec = (now.nsec as u32 ) % 1_000_000_000;
-       let sec = (now.nsec / 1_000_000_000) as i32;
-        marker_template.header.stamp = Time{ nanosec, sec };
-        */
-
         marker_template.lifetime.sec = 10;
         marker_template.text = "hoge".to_string();
         marker_template.frame_locked = true;
@@ -181,11 +173,13 @@ impl Estimator {
                 None => continue,
             };
 
-            marker_template.points.push( Point{ x: sx_real, y: sy_real, z: 0.01 } );
+            let x_dist = (ex_real - sx_real) / dt;
+            let y_dist = (ey_real - sy_real) / dt;
+
             marker_template.points.push( Point{ x: ex_real, y: ey_real, z: 0.01 } );
+            marker_template.points.push( Point{ x: ex_real + x_dist , y: ey_real + y_dist, z: 0.01 } );
             marker_template.id += 1;
             ans.markers.push(marker_template.clone());
-            dbg!("{:?}", &marker_template.points);
             marker_template.points.clear();
 
             /*
