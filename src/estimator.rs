@@ -3,7 +3,7 @@
 
 use crate::map;
 use nav_msgs::msg::OccupancyGrid;
-use geometry_msgs::msg::Vector3;
+use geometry_msgs::msg::{Point, Vector3};
 use rand;
 use rand::Rng;
 use rand::rngs::ThreadRng;
@@ -135,13 +135,16 @@ impl Estimator {
     fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<MarkerArray>, Error> {
         let mut ans = MarkerArray::default();
         let mut marker_template = Marker::default();
-        marker_template.type_ = 1;
-        marker_template.scale = Vector3 { x: 1.0, y:1.0, z:1.0 };
-        marker_template.header = self.buffer[0].header.clone();
+        marker_template.type_ = 0;
+        marker_template.scale = Vector3 { x: 0.1, y:0.2, z: 0.1 };
+        marker_template.color.b = 1.0;
+        marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
+        marker_template.lifetime.sec = 10;
 
         let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
+        let resoluion = self.buffer[0].info.resolution;
 
         let start_time = map::time(&self.buffer[0]);
         let end_time = map::time(&self.buffer[self.buffer.len()-1]);
@@ -151,14 +154,20 @@ impl Estimator {
             let start = traj.indexes[0];
             let end = traj.indexes.last().unwrap();
 
-            let (sx, sy) = map::index_to_ixiy(start, width, height).ok_or(Error::OutOfMap)?;
-            let (ex, ey) = map::index_to_ixiy(*end, width, height).ok_or(Error::OutOfMap)?;
+            let (sx_real, sy_real) = match map::index_to_real_pos(start, width, height, resoluion) {
+                Some(pos) => pos,
+                None => continue,
+            };
+            let (ex_real, ey_real) = match map::index_to_real_pos(*end, width, height, resoluion) {
+                Some(pos) => pos,
+                None => continue,
+            };
 
-            marker_template.pose.position.x = sx as f64 * 0.1;
-            marker_template.pose.position.y = sy as f64 * 0.1;
-
+            marker_template.points.push( Point{ x: sx_real, y: sy_real, z: 0.01 } );
+            marker_template.points.push( Point{ x: ex_real, y: ey_real, z: 0.01 } );
             marker_template.id += 1;
             ans.markers.push(marker_template.clone());
+            dbg!("{:?}", &marker_template.points);
 
             /*
             let mut t = from;

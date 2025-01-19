@@ -60,6 +60,15 @@ pub fn index_to_ixiy(index: usize, width: u32, height: u32) -> Option<(i32, i32)
     Some((ix, iy))
 }
 
+pub fn index_to_real_pos(index: usize, width: u32, height: u32, resolution: f32) -> Option<(f64, f64)> {
+    let (ix, iy) = index_to_ixiy(index, width, height)?;
+
+    let x = ix as f64 - (width as f64)/2.0;
+    let y = iy as f64 - (height as f64)/2.0;
+
+    Some((x*resolution as f64, y*resolution as f64))
+}
+
 pub fn time(map: &OccupancyGrid) -> f64 {
     let sec = map.info.map_load_time.sec as f64;
     let nanosec = map.info.map_load_time.nanosec as f64;
