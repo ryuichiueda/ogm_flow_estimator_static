@@ -138,33 +138,10 @@ impl Estimator {
         let dt = end_time - start_time;
 
         for traj in &self.trajectories {
-            let start = traj.indexes[0];
-            let end = traj.indexes.last().unwrap();
-
-            /*
-            let mut s = match map::index_to_real_pos(start, width, height, resolution) {
-                Some(pos) => pos,
-                None => continue,
-            };*/
-            let mut e = match map::index_to_real_pos(*end, width, height, resolution) {
-                Some(pos) => pos,
-                None => continue,
-            };
-
-            let diff = traj.get_diff(width, height, resolution, &mut self.rng).unwrap();
-            let x_dist = diff.0 / dt;
-            let y_dist = diff.1 / dt;
-            /*
-            let mut s = traj.get_start_pos(width, height, resolution, &mut self.rng).unwrap();
-            let mut e = traj.get_end_pos(width, height, resolution, &mut self.rng).unwrap();
-*/
-            /*
-            e.0 += resolution as f64 * self.rng.gen::<f64>();
-            e.1 += resolution as f64 * self.rng.gen::<f64>();
-
+            let e = traj.get_end_pos(width, height, resolution, &mut self.rng).unwrap();
+            let s = traj.get_start_pos(width, height, resolution, &mut self.rng).unwrap();
             let x_dist = (e.0 - s.0) / dt;
             let y_dist = (e.1 - s.1) / dt;
-            */
 
             self.marker_template.points.push( Point{ x: e.0, y: e.1, z: 0.01 } );
             self.marker_template.points.push( Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 } );
