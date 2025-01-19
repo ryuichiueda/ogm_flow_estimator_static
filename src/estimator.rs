@@ -10,6 +10,10 @@ use rand::rngs::ThreadRng;
 use chrono::Local;
 use visualization_msgs::msg::Marker;
 use visualization_msgs::msg::MarkerArray;
+/*
+use rclrs::Clock;
+use builtin_interfaces::msg::Time;
+*/
 
 #[derive(Default, Debug)]
 pub struct Estimator {
@@ -136,10 +140,24 @@ impl Estimator {
         let mut ans = MarkerArray::default();
         let mut marker_template = Marker::default();
         marker_template.type_ = 0;
+        marker_template.ns = "estimation".to_string();
         marker_template.scale = Vector3 { x: 0.1, y:0.2, z: 0.1 };
         marker_template.color.b = 1.0;
+        marker_template.color.a = 1.0;
         marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
+        marker_template.header.frame_id = "base_scan".to_string();
+
+        /*
+       let clock = Clock::system();
+       let now = clock.now();
+       let nanosec = (now.nsec as u32 ) % 1_000_000_000;
+       let sec = (now.nsec / 1_000_000_000) as i32;
+        marker_template.header.stamp = Time{ nanosec, sec };
+        */
+
         marker_template.lifetime.sec = 10;
+        marker_template.text = "hoge".to_string();
+        marker_template.frame_locked = true;
 
         let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
