@@ -136,22 +136,22 @@ impl Estimator {
         Ok(())
     }
 
-    fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<MarkerArray>, Error> {
+    fn forecast(&mut self) -> Result<Option<MarkerArray>, Error> {
         let mut ans = MarkerArray::default();
         let mut marker_template = Marker::default();
         marker_template.type_ = 0;
         marker_template.ns = "estimation".to_string();
-        marker_template.scale = Vector3 { x: 0.1, y:0.2, z: 0.1 };
+        marker_template.scale = Vector3 { x: 0.02, y: 0.05, z: 0.1 };
         marker_template.color.b = 1.0;
         marker_template.color.a = 1.0;
         marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
         marker_template.header.frame_id = "base_scan".to_string();
 
-        marker_template.lifetime.sec = 10;
+        marker_template.lifetime.sec = 1;
         marker_template.text = "hoge".to_string();
         marker_template.frame_locked = true;
 
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
         let resoluion = self.buffer[0].info.resolution;
@@ -204,15 +204,6 @@ impl Estimator {
             }*/
         }
 
-        /*
-        let max = ans.data.iter().max().unwrap().clone();
-        if max == 0 {
-            ans.data.iter_mut().for_each(|d| *d = 0 );
-            return Ok(Some(ans));
-        }
-        ans.data.iter_mut().for_each(|d| *d = ((*d as i32)*100 / max as i32) as i8 );
-
-        */
         Ok(Some(ans))
     }
 
@@ -228,7 +219,7 @@ impl Estimator {
             self.trajectories.retain(|t| t.indexes.len() == i+1);
         }
 
-        let ans = self.forecast(2.0, 10.0, 0.2);
+        let ans = self.forecast();
         dbg!("END {:?}", Local::now());
         ans
     }
