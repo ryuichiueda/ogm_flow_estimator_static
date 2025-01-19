@@ -1,6 +1,9 @@
 //SPDX-FileCopyrightText: Ryuichi Ueda <ryuichiueda@gmail.com>
 //SPDX-License-Identifier: BSD-3-Clause
 
+mod trajectory;
+
+use self::trajectory::Trajectory;
 use builtin_interfaces::msg::Duration;
 use crate::map;
 use std_msgs::msg::ColorRGBA;
@@ -8,10 +11,17 @@ use nav_msgs::msg::OccupancyGrid;
 use geometry_msgs::msg::{Point, Vector3};
 use rand;
 use rand::Rng;
-use rand::rngs::ThreadRng;
 use chrono::Local;
 use visualization_msgs::msg::Marker;
 use visualization_msgs::msg::MarkerArray;
+
+#[derive(Debug)]
+pub enum Error {
+    NoBuffer,
+    TrajectoryInit,
+    OutOfMap,
+    NotFound,
+}
 
 #[derive(Default, Debug)]
 pub struct Estimator {
@@ -20,6 +30,7 @@ pub struct Estimator {
     marker_template: Marker,
 }
 
+/*
 #[derive(Default, Debug)]
 pub struct Trajectory {
     indexes: Vec<usize>,
@@ -53,24 +64,16 @@ impl Trajectory {
         Ok(())
     }
 }
-
-#[derive(Debug)]
-pub enum Error {
-    NoBuffer,
-    TrajectoryInit,
-    OutOfMap,
-    NotFound,
-}
+*/
 
 impl Estimator {
     pub fn new() -> Self {
-        let mut marker = Marker{
-            type_:  0,
-            ns:  "estimation".to_string(),
+        let marker = Marker{
+            type_: 0,
+            ns: "estimation".to_string(),
             scale: Vector3 { x: 0.02, y: 0.05, z: 0.1 },
             color: ColorRGBA{ r: 0.0, g: 0.0, b: 1.0, a: 1.0 },
             lifetime:  Duration{ sec: 1, nanosec: 0 },
-            frame_locked:  true,
             ..Default::default()
         };
 
