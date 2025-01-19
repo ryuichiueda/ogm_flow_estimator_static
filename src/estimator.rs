@@ -11,6 +11,7 @@ use nav_msgs::msg::OccupancyGrid;
 use geometry_msgs::msg::{Point, Vector3};
 use rand;
 use rand::Rng;
+use rand::rngs::ThreadRng;
 use chrono::Local;
 use visualization_msgs::msg::Marker;
 use visualization_msgs::msg::MarkerArray;
@@ -28,43 +29,8 @@ pub struct Estimator {
     buffer: Vec<OccupancyGrid>,
     trajectories: Vec<Trajectory>,
     marker_template: Marker,
+    rng: ThreadRng,
 }
-
-/*
-#[derive(Default, Debug)]
-pub struct Trajectory {
-    indexes: Vec<usize>,
-}
-
-impl Trajectory {
-    pub fn add(&mut self, next_map: &OccupancyGrid, range: i32,
-               rng: &mut ThreadRng) -> Result<(), Error> {
-        let mut ans = vec![];
-        let last_index = self.indexes.last().ok_or(Error::TrajectoryInit)?;
-        let (cx, cy) = map::index_to_ixiy(*last_index, next_map.info.width, next_map.info.height)
-                     .ok_or(Error::OutOfMap)?;
-
-        for ix in (cx - range)..(cx + range + 1) {
-            for iy in (cy - range)..(cy + range + 1) {
-                if let Some(index) = map::ixiy_to_index(ix, iy, next_map.info.width, next_map.info.height) {
-                    if next_map.data[index] > 0 {
-                        ans.push(index);
-                    }
-                }
-            }
-        }
-
-        if ans.is_empty() {
-            return Err(Error::NotFound);
-        }
-
-        let selected = ans[rng.gen::<usize>()%ans.len()];
-        self.indexes.push(selected);
-
-        Ok(())
-    }
-}
-*/
 
 impl Estimator {
     pub fn new() -> Self {
@@ -77,7 +43,11 @@ impl Estimator {
             ..Default::default()
         };
 
-        let mut estimator = Self::default();
+        let mut estimator = Estimator {
+            rng: rand::thread_rng(),
+            ..Self::default()
+        };
+
         estimator.marker_template = marker;
 
         estimator
@@ -120,8 +90,8 @@ impl Estimator {
         let mut ans = vec![];
 
         let mut i_cell = 0;
-        let mut rng = rand::thread_rng();
-        let mut head: f64 = rng.gen::<f64>() * step;
+        //let mut rng = rand::thread_rng();
+        let mut head: f64 = self.rng.gen::<f64>() * step;
         let mut accum: usize = 0;
 
         while head < sum && i_cell < map.data.len() {
@@ -147,10 +117,10 @@ impl Estimator {
 
         let max_traveling_cells = (MAX_SPEED * diff / RESOLUTION).ceil() as i32;
 
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
 
         for traj in self.trajectories.iter_mut() {
-            let _ = traj.add(&map, max_traveling_cells, &mut rng);
+            let _ = traj.add(&map, max_traveling_cells, &mut self.rng);
         }
         Ok(())
     }
@@ -159,7 +129,7 @@ impl Estimator {
         let mut ans = MarkerArray::default();
         self.marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
 
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
         let resolution = self.buffer[0].info.resolution;
@@ -172,7 +142,6 @@ impl Estimator {
             let start = traj.indexes[0];
             let end = traj.indexes.last().unwrap();
 
-            //let (mut s.0, mut s.1) = match map::index_to_real_pos(start, width, height, resolution) {
             let mut s = match map::index_to_real_pos(start, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
@@ -182,10 +151,10 @@ impl Estimator {
                 None => continue,
             };
 
-            s.0 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
-            s.1 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
-            e.0 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
-            e.1 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            s.0 += resolution as f64 * self.rng.gen::<f64>();
+            s.1 += resolution as f64 * self.rng.gen::<f64>();
+            e.0 += resolution as f64 * self.rng.gen::<f64>();
+            e.1 += resolution as f64 * self.rng.gen::<f64>();
 
             let x_dist = (e.0 - s.0) / dt;
             let y_dist = (e.1 - s.1) / dt;
@@ -202,7 +171,6 @@ impl Estimator {
 
     fn calculation(&mut self) -> Result<Option<MarkerArray>, Error> {
         dbg!("START {:?}", Local::now());
-//        let tm = &self.buffer[0].info.map_load_time;
 
         self.trajectories = self.sampling(100).iter()
             .map(|s| Trajectory { indexes: vec![*s]}).collect();
