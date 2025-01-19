@@ -169,49 +169,29 @@ impl Estimator {
             let start = traj.indexes[0];
             let end = traj.indexes.last().unwrap();
 
-            let (mut sx_real, mut sy_real) = match map::index_to_real_pos(start, width, height, resolution) {
+            //let (mut s.0, mut s.1) = match map::index_to_real_pos(start, width, height, resolution) {
+            let mut s = match map::index_to_real_pos(start, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
             };
-            let (mut ex_real, mut ey_real) = match map::index_to_real_pos(*end, width, height, resolution) {
+            let mut e = match map::index_to_real_pos(*end, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
             };
 
-            sx_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
-            sy_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
-            ex_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
-            ey_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            s.0 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            s.1 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            e.0 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            e.1 += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
 
-            let x_dist = (ex_real - sx_real) / dt;
-            let y_dist = (ey_real - sy_real) / dt;
+            let x_dist = (e.0 - s.0) / dt;
+            let y_dist = (e.1 - s.1) / dt;
 
-            self.marker_template.points.push( Point{ x: ex_real, y: ey_real, z: 0.01 } );
-            self.marker_template.points.push( Point{ x: ex_real + x_dist , y: ey_real + y_dist, z: 0.01 } );
+            self.marker_template.points.push( Point{ x: e.0, y: e.1, z: 0.01 } );
+            self.marker_template.points.push( Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 } );
             self.marker_template.id = ans.markers.len() as i32;
             ans.markers.push(self.marker_template.clone());
             self.marker_template.points.clear();
-
-            /*
-            let mut t = from;
-            while t < to {
-                let sx = sx as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
-                let sy = sy as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
-                let ex = ex as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
-                let ey = ey as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
-
-                let x_dist = (ex - sx) * t / dt;
-                let y_dist = (ey - sy) * t / dt;
-
-                let forecast_x = (ex as f64 + x_dist).floor() as i32;
-                let forecast_y = (ey as f64 + y_dist).floor() as i32;
-
-                if let Some(index) = map::ixiy_to_index(forecast_x, forecast_y, width, height) {
-                    ans.data[index] += 1;
-                }
-
-                t += delta;
-            }*/
         }
 
         Ok(Some(ans))
