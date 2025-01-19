@@ -168,6 +168,7 @@ impl Estimator {
             marker_template.id += 1;
             ans.markers.push(marker_template.clone());
             dbg!("{:?}", &marker_template.points);
+            marker_template.points.clear();
 
             /*
             let mut t = from;
