@@ -25,8 +25,6 @@ As the author is not used to `ros2_rust`, parameters and names of topics are fix
         * vector
             * start: current position of a part of an obstacle
             * end: forecast of the position after one second
-       
-### required topic
 
 ## Required software
 
