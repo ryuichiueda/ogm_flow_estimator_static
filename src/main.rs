@@ -11,6 +11,7 @@ use crate::estimator::Estimator;
 use std::sync::{Arc, Mutex};
 use sensor_msgs::msg::LaserScan;
 use nav_msgs::msg::OccupancyGrid;
+use visualization_msgs::msg::MarkerArray;
 use std::ops::Deref;
 
 struct FlowEstimatorNode {
@@ -19,7 +20,7 @@ struct FlowEstimatorNode {
     data: Arc<Mutex<Option<LaserScan>>>,
     scan_map: Arc<rclrs::Publisher<OccupancyGrid>>,
     static_obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
-    dynamic_obstacle_map: Arc<rclrs::Publisher<OccupancyGrid>>,
+    obstacle_motion: Arc<rclrs::Publisher<MarkerArray>>,
 }
 
 impl FlowEstimatorNode {
@@ -35,14 +36,14 @@ impl FlowEstimatorNode {
 
         let scan_map = node.create_publisher("scan_map", rclrs::QOS_PROFILE_DEFAULT)?;
         let static_obstacle_map = node.create_publisher("static_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
-        let dynamic_obstacle_map = node.create_publisher("dynamic_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
+        let obstacle_motion = node.create_publisher("obstacle_motion", rclrs::QOS_PROFILE_DEFAULT)?;
         Ok(Self {
             node,
             _sub_scan,
             data,
             scan_map,
             static_obstacle_map,
-            dynamic_obstacle_map,
+            obstacle_motion,
         })
     }
 
@@ -77,8 +78,8 @@ impl FlowEstimatorNode {
         Ok(())
     }
 
-    fn publish_dynamic_obstacle_map(&self, map: &OccupancyGrid) -> Result<(), rclrs::RclrsError> {
-        self.dynamic_obstacle_map.publish(map)?;
+    fn publish_obstacle_motion(&self, map: &MarkerArray) -> Result<(), rclrs::RclrsError> {
+        self.obstacle_motion.publish(map)?;
         Ok(())
     }
 }
@@ -101,8 +102,8 @@ fn main() -> Result<(), rclrs::RclrsError> {
             if let Some(static_map) = static_map::generate(&mut map_buffer) {
                 republisher_other_thread.publish_static_obstacle_map(&static_map)?;
                 match estimator.generate(&mut map_buffer, &static_map) {
-                    Ok(Some(dynamic_map)) => 
-                        republisher_other_thread.publish_dynamic_obstacle_map(&dynamic_map)?,
+                    Ok(Some(estimation)) => 
+                        republisher_other_thread.publish_obstacle_motion(&estimation)?,
                     Ok(None) => eprintln!("waiting ..."),
                     Err(e)   => eprintln!("{:?}", &e),
                 }

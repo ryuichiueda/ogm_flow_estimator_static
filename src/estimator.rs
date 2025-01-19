@@ -7,6 +7,8 @@ use rand;
 use rand::Rng;
 use rand::rngs::ThreadRng;
 use chrono::Local;
+use visualization_msgs::msg::Marker;
+use visualization_msgs::msg::MarkerArray;
 
 #[derive(Default, Debug)]
 pub struct Estimator {
@@ -57,7 +59,7 @@ pub enum Error {
 }
 
 impl Estimator {
-    pub fn generate(&mut self, raw_buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Result<Option<OccupancyGrid>, Error> {
+    pub fn generate(&mut self, raw_buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Result<Option<MarkerArray>, Error> {
         const LIMIT_SEC: f64 = 0.9;
         const MIN_INTERVAL: f64 = 0.15;
 
@@ -129,10 +131,11 @@ impl Estimator {
         Ok(())
     }
 
-    fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<OccupancyGrid>, Error> {
+    fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<MarkerArray>, Error> {
         let mut rng = rand::thread_rng();
-        let mut ans = self.buffer[0].clone();
-        ans.data.iter_mut().for_each(|d| *d = 0 );
+        //let mut ans = self.buffer[0].clone();
+        //ans.data.iter_mut().for_each(|d| *d = 0 );
+        let mut ans = MarkerArray::default();
 
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
@@ -148,6 +151,9 @@ impl Estimator {
             let (sx, sy) = map::index_to_ixiy(start, width, height).ok_or(Error::OutOfMap)?;
             let (ex, ey) = map::index_to_ixiy(*end, width, height).ok_or(Error::OutOfMap)?;
 
+            let mut marker = Marker::default();
+
+            /*
             let mut t = from;
             while t < to {
                 let sx = sx as f64 + ((rng.gen::<usize>()%100) as f64) / 100.0;
@@ -166,9 +172,10 @@ impl Estimator {
                 }
 
                 t += delta;
-            }
+            }*/
         }
 
+        /*
         let max = ans.data.iter().max().unwrap().clone();
         if max == 0 {
             ans.data.iter_mut().for_each(|d| *d = 0 );
@@ -176,10 +183,11 @@ impl Estimator {
         }
         ans.data.iter_mut().for_each(|d| *d = ((*d as i32)*100 / max as i32) as i8 );
 
+        */
         Ok(Some(ans))
     }
 
-    fn calculation(&mut self) -> Result<Option<OccupancyGrid>, Error> {
+    fn calculation(&mut self) -> Result<Option<MarkerArray>, Error> {
         dbg!("START {:?}", Local::now());
 //        let tm = &self.buffer[0].info.map_load_time;
 
