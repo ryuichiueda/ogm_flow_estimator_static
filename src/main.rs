@@ -92,7 +92,7 @@ fn main() -> Result<(), rclrs::RclrsError> {
     let mut map_buffer = vec![];
 
     std::thread::spawn(move || -> Result<(), rclrs::RclrsError> {
-        let mut estimator = Estimator::default();
+        let mut estimator = Estimator::new();
 
         loop {
             use std::time::Duration;

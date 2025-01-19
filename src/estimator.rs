@@ -1,7 +1,9 @@
 //SPDX-FileCopyrightText: Ryuichi Ueda <ryuichiueda@gmail.com>
 //SPDX-License-Identifier: BSD-3-Clause
 
+use builtin_interfaces::msg::Duration;
 use crate::map;
+use std_msgs::msg::ColorRGBA;
 use nav_msgs::msg::OccupancyGrid;
 use geometry_msgs::msg::{Point, Vector3};
 use rand;
@@ -10,15 +12,12 @@ use rand::rngs::ThreadRng;
 use chrono::Local;
 use visualization_msgs::msg::Marker;
 use visualization_msgs::msg::MarkerArray;
-/*
-use rclrs::Clock;
-use builtin_interfaces::msg::Time;
-*/
 
 #[derive(Default, Debug)]
 pub struct Estimator {
     buffer: Vec<OccupancyGrid>,
     trajectories: Vec<Trajectory>,
+    marker_template: Marker,
 }
 
 #[derive(Default, Debug)]
@@ -64,6 +63,23 @@ pub enum Error {
 }
 
 impl Estimator {
+    pub fn new() -> Self {
+        let mut marker = Marker{
+            type_:  0,
+            ns:  "estimation".to_string(),
+            scale: Vector3 { x: 0.02, y: 0.05, z: 0.1 },
+            color: ColorRGBA{ r: 0.0, g: 0.0, b: 1.0, a: 1.0 },
+            lifetime:  Duration{ sec: 1, nanosec: 0 },
+            frame_locked:  true,
+            ..Default::default()
+        };
+
+        let mut estimator = Self::default();
+        estimator.marker_template = marker;
+
+        estimator
+    }
+
     pub fn generate(&mut self, raw_buffer: &Vec<OccupancyGrid>, static_map: &OccupancyGrid) -> Result<Option<MarkerArray>, Error> {
         const LIMIT_SEC: f64 = 0.9;
         const MIN_INTERVAL: f64 = 0.15;
@@ -138,23 +154,12 @@ impl Estimator {
 
     fn forecast(&mut self) -> Result<Option<MarkerArray>, Error> {
         let mut ans = MarkerArray::default();
-        let mut marker_template = Marker::default();
-        marker_template.type_ = 0;
-        marker_template.ns = "estimation".to_string();
-        marker_template.scale = Vector3 { x: 0.02, y: 0.05, z: 0.1 };
-        marker_template.color.b = 1.0;
-        marker_template.color.a = 1.0;
-        marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
-        marker_template.header.frame_id = "base_scan".to_string();
+        self.marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
 
-        marker_template.lifetime.sec = 1;
-        marker_template.text = "hoge".to_string();
-        marker_template.frame_locked = true;
-
-        //let mut rng = rand::thread_rng();
+        let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
-        let resoluion = self.buffer[0].info.resolution;
+        let resolution = self.buffer[0].info.resolution;
 
         let start_time = map::time(&self.buffer[0]);
         let end_time = map::time(&self.buffer[self.buffer.len()-1]);
@@ -164,23 +169,28 @@ impl Estimator {
             let start = traj.indexes[0];
             let end = traj.indexes.last().unwrap();
 
-            let (sx_real, sy_real) = match map::index_to_real_pos(start, width, height, resoluion) {
+            let (mut sx_real, mut sy_real) = match map::index_to_real_pos(start, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
             };
-            let (ex_real, ey_real) = match map::index_to_real_pos(*end, width, height, resoluion) {
+            let (mut ex_real, mut ey_real) = match map::index_to_real_pos(*end, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
             };
+
+            sx_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            sy_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            ex_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
+            ey_real += resolution as f64 * (((rng.gen::<usize>()%100) as f64) / 100.0);
 
             let x_dist = (ex_real - sx_real) / dt;
             let y_dist = (ey_real - sy_real) / dt;
 
-            marker_template.points.push( Point{ x: ex_real, y: ey_real, z: 0.01 } );
-            marker_template.points.push( Point{ x: ex_real + x_dist , y: ey_real + y_dist, z: 0.01 } );
-            marker_template.id += 1;
-            ans.markers.push(marker_template.clone());
-            marker_template.points.clear();
+            self.marker_template.points.push( Point{ x: ex_real, y: ey_real, z: 0.01 } );
+            self.marker_template.points.push( Point{ x: ex_real + x_dist , y: ey_real + y_dist, z: 0.01 } );
+            self.marker_template.id = ans.markers.len() as i32;
+            ans.markers.push(self.marker_template.clone());
+            self.marker_template.points.clear();
 
             /*
             let mut t = from;
