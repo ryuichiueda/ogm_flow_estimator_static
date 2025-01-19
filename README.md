@@ -3,7 +3,7 @@
 Concise motion estimator on an occupied grid map with a static viewpoint, whose basic algorithm has been presented on a domestic conference. 
 (I will present it in some international conference with some improvement.)
 
-[!['demo'](./img/demo.png)](https://www.youtube.com/watch?v=xlw0ZDF2jWc)
+[!['demo'](http://img.youtube.com/vi/xlw0ZDF2jWc/sddefault.jpg)](https://www.youtube.com/watch?v=xlw0ZDF2jWc)
 
 
 ## How to use
