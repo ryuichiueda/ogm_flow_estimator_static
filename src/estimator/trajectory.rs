@@ -40,4 +40,24 @@ impl Trajectory {
 
         Ok(())
     }
+
+    pub fn get_diff(&self, width: u32, height: u32, resolution: f32, rng: &mut ThreadRng) -> Option<(f64, f64)> {
+        let mut s = self.get_start_pos(width, height, resolution, rng).unwrap();
+        let mut e = self.get_end_pos(width, height, resolution, rng).unwrap();
+        Some((e.0-s.0, e.1-s.1)) 
+    }
+
+    fn get_start_pos(&self, width: u32, height: u32, resolution: f32, rng: &mut ThreadRng) -> Option<(f64, f64)> {
+        let s = map::index_to_real_pos(self.indexes[0], width, height, resolution)?;
+        let x = s.0 as f64 + resolution as f64 * rng.gen::<f64>();
+        let y = s.1 as f64 + resolution as f64 * rng.gen::<f64>();
+        Some((x, y))
+    }
+
+    fn get_end_pos(&self, width: u32, height: u32, resolution: f32, rng: &mut ThreadRng) -> Option<(f64, f64)> {
+        let s = map::index_to_real_pos(self.indexes[self.indexes.len()-1], width, height, resolution)?;
+        let x = s.0 as f64 + resolution as f64 * rng.gen::<f64>();
+        let y = s.1 as f64 + resolution as f64 * rng.gen::<f64>();
+        Some((x, y))
+    }
 }

@@ -129,7 +129,6 @@ impl Estimator {
         let mut ans = MarkerArray::default();
         self.marker_template.header = self.buffer[self.buffer.len()-1].header.clone();
 
-        //let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
         let resolution = self.buffer[0].info.resolution;
@@ -142,22 +141,30 @@ impl Estimator {
             let start = traj.indexes[0];
             let end = traj.indexes.last().unwrap();
 
+            /*
             let mut s = match map::index_to_real_pos(start, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
-            };
+            };*/
             let mut e = match map::index_to_real_pos(*end, width, height, resolution) {
                 Some(pos) => pos,
                 None => continue,
             };
 
-            s.0 += resolution as f64 * self.rng.gen::<f64>();
-            s.1 += resolution as f64 * self.rng.gen::<f64>();
+            let diff = traj.get_diff(width, height, resolution, &mut self.rng).unwrap();
+            let x_dist = diff.0 / dt;
+            let y_dist = diff.1 / dt;
+            /*
+            let mut s = traj.get_start_pos(width, height, resolution, &mut self.rng).unwrap();
+            let mut e = traj.get_end_pos(width, height, resolution, &mut self.rng).unwrap();
+*/
+            /*
             e.0 += resolution as f64 * self.rng.gen::<f64>();
             e.1 += resolution as f64 * self.rng.gen::<f64>();
 
             let x_dist = (e.0 - s.0) / dt;
             let y_dist = (e.1 - s.1) / dt;
+            */
 
             self.marker_template.points.push( Point{ x: e.0, y: e.1, z: 0.01 } );
             self.marker_template.points.push( Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 } );
