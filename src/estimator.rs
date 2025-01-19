@@ -3,6 +3,7 @@
 
 use crate::map;
 use nav_msgs::msg::OccupancyGrid;
+use geometry_msgs::msg::Vector3;
 use rand;
 use rand::Rng;
 use rand::rngs::ThreadRng;
@@ -132,11 +133,13 @@ impl Estimator {
     }
 
     fn forecast(&mut self, from: f64, to: f64, delta: f64) -> Result<Option<MarkerArray>, Error> {
-        let mut rng = rand::thread_rng();
-        //let mut ans = self.buffer[0].clone();
-        //ans.data.iter_mut().for_each(|d| *d = 0 );
         let mut ans = MarkerArray::default();
+        let mut marker_template = Marker::default();
+        marker_template.type_ = 1;
+        marker_template.scale = Vector3 { x: 1.0, y:1.0, z:1.0 };
+        marker_template.header = self.buffer[0].header.clone();
 
+        let mut rng = rand::thread_rng();
         let width = self.buffer[0].info.width;
         let height = self.buffer[0].info.height;
 
@@ -151,7 +154,11 @@ impl Estimator {
             let (sx, sy) = map::index_to_ixiy(start, width, height).ok_or(Error::OutOfMap)?;
             let (ex, ey) = map::index_to_ixiy(*end, width, height).ok_or(Error::OutOfMap)?;
 
-            let mut marker = Marker::default();
+            marker_template.pose.position.x = sx as f64 * 0.1;
+            marker_template.pose.position.y = sy as f64 * 0.1;
+
+            marker_template.id += 1;
+            ans.markers.push(marker_template.clone());
 
             /*
             let mut t = from;

@@ -36,7 +36,7 @@ impl FlowEstimatorNode {
 
         let scan_map = node.create_publisher("scan_map", rclrs::QOS_PROFILE_DEFAULT)?;
         let static_obstacle_map = node.create_publisher("static_obstacle_map", rclrs::QOS_PROFILE_DEFAULT)?;
-        let obstacle_motion = node.create_publisher("obstacle_motion", rclrs::QOS_PROFILE_DEFAULT)?;
+        let obstacle_motion = node.create_publisher("estimation_array", rclrs::QOS_PROFILE_DEFAULT)?;
         Ok(Self {
             node,
             _sub_scan,
