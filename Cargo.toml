@@ -1,5 +1,5 @@
 [package]
-name = "ogm_flow_estimator_static"
+name = "flow_estimator"
 version = "0.0.0"
 edition = "2021"
 

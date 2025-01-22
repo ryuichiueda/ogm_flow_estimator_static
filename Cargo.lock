@@ -139,6 +139,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
+name = "flow_estimator"
+version = "0.0.0"
+dependencies = [
+ "builtin_interfaces",
+ "chrono",
+ "geometry_msgs",
+ "nav_msgs",
+ "rand",
+ "rclrs",
+ "sensor_msgs",
+ "std_msgs",
+ "visualization_msgs",
+]
+
+[[package]]
 name = "futures"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -356,21 +371,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "ogm_flow_estimator_static"
-version = "0.0.0"
-dependencies = [
- "builtin_interfaces",
- "chrono",
- "geometry_msgs",
- "nav_msgs",
- "rand",
- "rclrs",
- "sensor_msgs",
- "std_msgs",
- "visualization_msgs",
 ]
 
 [[package]]

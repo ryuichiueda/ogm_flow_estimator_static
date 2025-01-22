@@ -1,15 +1,13 @@
 # Occupancy Grid Map Flow Estimator (Static Version)
 
 Concise motion estimator on an occupied grid map with a static viewpoint, whose basic algorithm has been presented on a domestic conference. 
-(I will present it in some international conference with some improvement.)
+(I will present it in some international conference or journal with some improvement.)
 
 [!['demo'](http://img.youtube.com/vi/FvutzPRR0Qc/sddefault.jpg)](https://www.youtube.com/watch?v=FvutzPRR0Qc)
 
-
-
 ## How to use
 
-This is a ROS 2 repository using [ros2_rust](https://github.com/ros2-rust/ros2_rust). The way of installation is based on the manual or `ros2_rust`.
+This is a ROS 2 repository using [ros2_rust](https://github.com/ros2-rust/ros2_rust). The way of installation and execution are based on the manual or `ros2_rust`. They may be different from the ways of regular (Python or C++) packages. 
 
 ### node and its interfaces
 
