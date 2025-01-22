@@ -125,6 +125,14 @@ impl Estimator {
         Ok(())
     }
 
+    /*
+    pub fn get_start_pos(&mut self, traj: &Trajectory, resolution: f32) -> Option<(f64, f64)> {
+        let s = map::index_to_real_pos(traj.indexes[0], self.buffer[0].info.width, self.buffer[0].info.height, self.buffer[0].info.resolution)?;
+        let x = s.0 as f64 + self.buffer[0].info.resolution as f64 * self.rng.gen::<f64>();
+        let y = s.1 as f64 + self.buffer[0].info.resolution as f64 * self.rng.gen::<f64>();
+        Some((x, y))
+    }*/
+
     fn forecast(&mut self) -> Result<Option<MarkerArray>, Error> {
         let mut ans = MarkerArray::default();
         self.marker_template.header = self.buffer[self.buffer.len()-1].header.clone();

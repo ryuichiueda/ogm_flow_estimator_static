@@ -1,0 +1,5 @@
+<launch>
+
+  <node pkg="ogm_flow_estimator_static" exec="" name="ogm_flow_estimator_static" output="screen" />
+
+</launch>
