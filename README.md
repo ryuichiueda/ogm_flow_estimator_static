@@ -33,7 +33,7 @@ As the author is not used to `ros2_rust`, parameters and names of topics are fix
 
 ## launch
 
-There is no launch files since I have never understood how to write them for ros2_rust packages. Instead, I placed a bash script in `launch` directory. This script builds and runs `flow_estimator` node. Moreover, it plays a bag file which contains messages on `/scan` topic. So you type `rviz2` and executes it from another terminal, you can observe messages on the `estimaton_array` topic. 
+There is no launch files since I have never understood how to write them for ros2_rust packages. Instead, I placed a bash script in `launch` directory. This script builds and runs `flow_estimator` node. Moreover, it plays a bag file which contains messages on `/scan` topic. So as you launch `rviz2` from another terminal, you can observe messages on the `estimaton_array` topic. 
 
 ## References
 
