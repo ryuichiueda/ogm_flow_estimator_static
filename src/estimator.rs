@@ -125,7 +125,7 @@ impl Estimator {
         Ok(())
     }
 
-    fn cross_check(ps: &mut Vec<(Point, Point)>) -> usize {
+    fn cross_check(ps: &mut Vec<((f64, f64), (f64, f64))>) -> usize {
         if ps.len() < 2 {
             return 0;
         }
@@ -134,15 +134,15 @@ impl Estimator {
         let mut counter = 0;
 
         for i in 0..iter_num {
-            let ax = ps[i].0.x;
-            let ay = ps[i].0.y;
-            let bx = ps[i].1.x;
-            let by = ps[i].1.y;
+            let ax = ps[i].0.0;
+            let ay = ps[i].0.1;
+            let bx = ps[i].1.0;
+            let by = ps[i].1.1;
 
-            let cx = ps[i+1].0.x;
-            let cy = ps[i+1].0.y;
-            let dx = ps[i+1].1.x;
-            let dy = ps[i+1].1.y;
+            let cx = ps[i+1].0.0;
+            let cy = ps[i+1].0.1;
+            let dx = ps[i+1].1.0;
+            let dy = ps[i+1].1.1;
 
             let ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
             let ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
@@ -158,10 +158,10 @@ impl Estimator {
                     continue;
             }
 
-            ps[i].1.x = dx;
-            ps[i].1.y = dy;
-            ps[i+1].1.x = bx;
-            ps[i+1].1.y = by;
+            ps[i].1.0 = dx;
+            ps[i].1.1 = dy;
+            ps[i+1].1.0 = bx;
+            ps[i+1].1.1 = by;
 
             counter += 1;
         }
@@ -186,12 +186,7 @@ impl Estimator {
         for traj in &self.trajectories {
             let e = traj.get_end_pos(width, height, resolution, &mut self.rng).unwrap();
             let s = traj.get_start_pos(width, height, resolution, &mut self.rng).unwrap();
-            let x_dist = (e.0 - s.0) / dt;
-            let y_dist = (e.1 - s.1) / dt;
-
-            let ps = Point{ x: e.0, y: e.1, z: 0.01 };
-            let pe = Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 };
-            vectors.push( (ps, pe) );
+            vectors.push( (s, e) );
         }
 
         for _ in 0..10 {
@@ -202,9 +197,15 @@ impl Estimator {
             }
         }
 
-        for p in vectors {
-            self.marker_template.points.push( p.0 );
-            self.marker_template.points.push( p.1 );
+        for (s, e) in vectors {
+            let x_dist = (e.0 - s.0) / dt;
+            let y_dist = (e.1 - s.1) / dt;
+
+            let ps = Point{ x: e.0, y: e.1, z: 0.01 };
+            let pe = Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 };
+
+            self.marker_template.points.push( ps );
+            self.marker_template.points.push( pe );
             self.marker_template.id = ans.markers.len() as i32;
             ans.markers.push(self.marker_template.clone());
             self.marker_template.points.clear();
