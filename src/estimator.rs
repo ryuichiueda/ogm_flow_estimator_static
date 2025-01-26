@@ -134,38 +134,38 @@ impl Estimator {
         let mut counter = 0;
 
         for i in 0..iter_num {
-        for j in (i+1)..iter_num {
-            let ax = ps[i].0.0;
-            let ay = ps[i].0.1;
-            let bx = ps[i].1.0;
-            let by = ps[i].1.1;
-
-            let cx = ps[j].0.0;
-            let cy = ps[j].0.1;
-            let dx = ps[j].1.0;
-            let dy = ps[j].1.1;
-
-            let ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
-            let ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
-
-            if ab_ac*ab_ad >= 0.0 { 
-                    continue;
+            for j in (i+1)..iter_num {
+                let ax = ps[i].0.0;
+                let ay = ps[i].0.1;
+                let bx = ps[i].1.0;
+                let by = ps[i].1.1;
+    
+                let cx = ps[j].0.0;
+                let cy = ps[j].0.1;
+                let dx = ps[j].1.0;
+                let dy = ps[j].1.1;
+    
+                let ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
+                let ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
+    
+                if ab_ac*ab_ad >= 0.0 { 
+                        continue;
+                }
+    
+                let cd_ca = (dx-cx)*(ay-cy)-(ax-cx)*(dy-cy);
+                let cd_cb = (dx-cx)*(by-cy)-(bx-cx)*(dy-cy);
+    
+                if cd_ca*cd_cb >= 0.0 { 
+                        continue;
+                }
+    
+                ps[i].1.0 = dx;
+                ps[i].1.1 = dy;
+                ps[j].1.0 = bx;
+                ps[j].1.1 = by;
+    
+                counter += 1;
             }
-
-            let cd_ca = (dx-cx)*(ay-cy)-(ax-cx)*(dy-cy);
-            let cd_cb = (dx-cx)*(by-cy)-(bx-cx)*(dy-cy);
-
-            if cd_ca*cd_cb >= 0.0 { 
-                    continue;
-            }
-
-            ps[i].1.0 = dx;
-            ps[i].1.1 = dy;
-            ps[j].1.0 = bx;
-            ps[j].1.1 = by;
-
-            counter += 1;
-        }
         }
 
         counter
