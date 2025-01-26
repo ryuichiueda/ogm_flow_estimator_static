@@ -125,13 +125,49 @@ impl Estimator {
         Ok(())
     }
 
-    /*
-    pub fn get_start_pos(&mut self, traj: &Trajectory, resolution: f32) -> Option<(f64, f64)> {
-        let s = map::index_to_real_pos(traj.indexes[0], self.buffer[0].info.width, self.buffer[0].info.height, self.buffer[0].info.resolution)?;
-        let x = s.0 as f64 + self.buffer[0].info.resolution as f64 * self.rng.gen::<f64>();
-        let y = s.1 as f64 + self.buffer[0].info.resolution as f64 * self.rng.gen::<f64>();
-        Some((x, y))
-    }*/
+    fn cross_check(ps: &mut Vec<(Point, Point)>) -> usize {
+        if ps.len() < 2 {
+            return 0;
+        }
+
+        let iter_num = ps.len() - 1;
+        let mut counter = 0;
+
+        for i in 0..iter_num {
+            let ax = ps[i].0.x;
+            let ay = ps[i].0.y;
+            let bx = ps[i].1.x;
+            let by = ps[i].1.y;
+
+            let cx = ps[i+1].0.x;
+            let cy = ps[i+1].0.y;
+            let dx = ps[i+1].1.x;
+            let dy = ps[i+1].1.y;
+
+            let ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
+            let ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
+
+            if ab_ac*ab_ad >= 0.0 { 
+                    continue;
+            }
+
+            let cd_ca = (dx-cx)*(ay-cy)-(ax-cx)*(dy-cy);
+            let cd_cb = (dx-cx)*(by-cy)-(bx-cx)*(dy-cy);
+
+            if cd_ca*cd_cb >= 0.0 { 
+                    continue;
+            }
+
+            ps[i].1.x = dx;
+            ps[i].1.y = dy;
+            ps[i+1].1.x = bx;
+            ps[i+1].1.y = by;
+
+            counter += 1;
+        }
+
+        counter
+    }
 
     fn forecast(&mut self) -> Result<Option<MarkerArray>, Error> {
         let mut ans = MarkerArray::default();
@@ -145,14 +181,30 @@ impl Estimator {
         let end_time = map::time(&self.buffer[self.buffer.len()-1]);
         let dt = end_time - start_time;
 
+        let mut vectors = vec![];
+
         for traj in &self.trajectories {
             let e = traj.get_end_pos(width, height, resolution, &mut self.rng).unwrap();
             let s = traj.get_start_pos(width, height, resolution, &mut self.rng).unwrap();
             let x_dist = (e.0 - s.0) / dt;
             let y_dist = (e.1 - s.1) / dt;
 
-            self.marker_template.points.push( Point{ x: e.0, y: e.1, z: 0.01 } );
-            self.marker_template.points.push( Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 } );
+            let ps = Point{ x: e.0, y: e.1, z: 0.01 };
+            let pe = Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 };
+            vectors.push( (ps, pe) );
+        }
+
+        for _ in 0..10 {
+            let num = Self::cross_check(&mut vectors);
+            dbg!("{:?}", &num);
+            if num == 0 {
+                break;
+            }
+        }
+
+        for p in vectors {
+            self.marker_template.points.push( p.0 );
+            self.marker_template.points.push( p.1 );
             self.marker_template.id = ans.markers.len() as i32;
             ans.markers.push(self.marker_template.clone());
             self.marker_template.points.clear();
