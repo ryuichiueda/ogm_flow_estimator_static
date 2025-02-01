@@ -125,7 +125,7 @@ impl Estimator {
         Ok(())
     }
 
-    fn cross_check(ps: &mut Vec<((f64, f64), (f64, f64))>) -> usize {
+    fn cross_check(ps: &mut Vec<((f64, f64), (f64, f64), (f64, f64) )>) -> usize {
         if ps.len() < 2 {
             return 0;
         }
@@ -137,13 +137,13 @@ impl Estimator {
             for j in (i+1)..iter_num {
                 let ax = ps[i].0.0;
                 let ay = ps[i].0.1;
-                let bx = ps[i].1.0;
-                let by = ps[i].1.1;
+                let bx = ps[i].2.0;
+                let by = ps[i].2.1;
     
                 let cx = ps[j].0.0;
                 let cy = ps[j].0.1;
-                let dx = ps[j].1.0;
-                let dy = ps[j].1.1;
+                let dx = ps[j].2.0;
+                let dy = ps[j].2.1;
     
                 let ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
                 let ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
@@ -158,11 +158,21 @@ impl Estimator {
                 if cd_ca*cd_cb >= 0.0 { 
                         continue;
                 }
+
+                let tmp = ps[i].1;
+                ps[i].1 = ps[j].1;
+                ps[j].1 = tmp;
+
+                let tmp = ps[i].2;
+                ps[i].2 = ps[j].2;
+                ps[j].2 = tmp;
     
-                ps[i].1.0 = dx;
-                ps[i].1.1 = dy;
-                ps[j].1.0 = bx;
-                ps[j].1.1 = by;
+                /*
+                ps[i].2.0 = dx;
+                ps[i].2.1 = dy;
+                ps[j].2.0 = bx;
+                ps[j].2.1 = by;
+                */
     
                 counter += 1;
             }
@@ -184,12 +194,18 @@ impl Estimator {
         let dt = end_time - start_time;
 
         let mut vectors = vec![];
+        const CROSSCHECK_EXTENSION: f64 = 2.0;
 
         for traj in &self.trajectories {
             let e = traj.get_end_pos(width, height, resolution, &mut self.rng).unwrap();
             let s = traj.get_start_pos(width, height, resolution, &mut self.rng).unwrap();
-            vectors.push( (s, e) );
+
+            let ext_x = s.0 + (e.0 - s.0) * CROSSCHECK_EXTENSION;
+            let ext_y = s.1 + (e.1 - s.1) * CROSSCHECK_EXTENSION;
+
+            vectors.push( (s, e, (ext_x, ext_y ) ) );
         }
+
 
         for _ in 0..10 {
             let num = Self::cross_check(&mut vectors);
@@ -199,7 +215,7 @@ impl Estimator {
             }
         }
 
-        for (s, e) in vectors {
+        for (s, e, _) in vectors {
             let x_dist = (e.0 - s.0) / dt;
             let y_dist = (e.1 - s.1) / dt;
 
