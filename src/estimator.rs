@@ -199,12 +199,37 @@ impl Estimator {
             }
         }
 
+        for v in vectors.iter_mut() {
+            let s = v.0;
+            let e = v.1;
+
+            let x_dist = (e.0 - s.0) / dt;
+            let y_dist = (e.1 - s.1) / dt;
+
+            v.0 = e.clone();
+            v.1.0 = e.0 + x_dist;
+            v.1.1 = e.1 + y_dist;
+
+        }
+
+        for _ in 0..10 {
+            let num = Self::cross_check(&mut vectors);
+            dbg!("{:?}", &num);
+            if num == 0 {
+                break;
+            }
+        }
+
         for (s, e) in vectors {
+            /*
             let x_dist = (e.0 - s.0) / dt;
             let y_dist = (e.1 - s.1) / dt;
 
             let ps = Point{ x: e.0, y: e.1, z: 0.01 };
             let pe = Point{ x: e.0 + x_dist , y: e.1 + y_dist, z: 0.01 };
+            */
+            let ps = Point{ x: s.0, y: s.1, z: 0.01 };
+            let pe = Point{ x: e.0, y: e.1, z: 0.01 };
 
             self.marker_template.points.push( ps );
             self.marker_template.points.push( pe );
