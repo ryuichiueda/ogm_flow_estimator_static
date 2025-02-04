@@ -160,18 +160,17 @@ impl Estimator {
                 }
 
                 let tmp = ps[i].1;
-                ps[i].1 = ps[j].1;
-                ps[j].1 = tmp;
+                ps[i].1 = ps[j].1.clone();
+                ps[j].1 = tmp.clone();
 
-                let tmp = ps[i].2;
-                ps[i].2 = ps[j].2;
-                ps[j].2 = tmp;
-    
+                ps[i].2.0 = 2.0*ps[i].1.0 - ps[i].0.0;
+                ps[i].2.1 = 2.0*ps[i].1.1 - ps[i].0.1;
+                ps[j].2.0 = 2.0*ps[j].1.0 - ps[j].0.0;
+                ps[j].2.1 = 2.0*ps[j].1.1 - ps[j].0.1;
                 /*
-                ps[i].2.0 = dx;
-                ps[i].2.1 = dy;
-                ps[j].2.0 = bx;
-                ps[j].2.1 = by;
+                let tmp = ps[i].2;
+                ps[i].2 = ps[j].2.clone();
+                ps[j].2 = tmp.clone();
                 */
     
                 counter += 1;
