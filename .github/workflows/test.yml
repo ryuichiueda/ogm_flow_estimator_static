@@ -8,6 +8,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: build
         run: |
+          apt install -y cargo git libclang-dev python3-pip python3-vcstool
+          pip install git+https://github.com/colcon/colcon-cargo.git
+          pip install git+https://github.com/colcon/colcon-ros-cargo.git
           rsync -av ./ /root/ros2_ws/src/ogm_flow_estimator_static/    
           cd /root/ros2_ws
+          git clone https://github.com/ros2-rust/ros2_rust.git src/ros2_rust
+          vcs import src < src/ros2_rust/ros2_rust_humble.repos
+          . /opt/ros/humble/setup.sh
+          colcon build
           bash -xv ./src/ogm_flow_estimator_static/test/test.bash /root
