@@ -14,3 +14,4 @@ cargo build --release
 ( sleep 5 && ros2 bag play ./bag/rosbag2_2025_01_22-13_29_26 ) &
 timeout 30 cargo run --release |& tee - log.txt
 
+grep -q END log.txt
