@@ -8,6 +8,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: build
         run: |
+          apt install -y rsync
           rsync -av ./ /root/ros2_ws/src/ogm_flow_estimator_static/    
           cd /root/ros2_ws
           colcon build
