@@ -781,24 +781,12 @@ name = "examples_rclrs_minimal_pub_sub"
 version = "0.4.1"
 
 [[patch.unused]]
-name = "grid_map_msgs"
-version = "2.0.0"
+name = "flow_estimator"
+version = "0.0.0"
 
 [[patch.unused]]
 name = "lifecycle_msgs"
 version = "1.2.1"
-
-[[patch.unused]]
-name = "my_first_rclrs"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "ogm_flow_estiator_static"
-version = "0.0.0"
-
-[[patch.unused]]
-name = "ogm_flow_estimator_static"
-version = "0.0.0"
 
 [[patch.unused]]
 name = "rcl_interfaces"

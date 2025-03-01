@@ -120,7 +120,8 @@ impl Estimator {
         //let mut rng = rand::thread_rng();
 
         for traj in self.trajectories.iter_mut() {
-            let _ = traj.add(&map, max_traveling_cells, &mut self.rng);
+            //let _ = traj.add(&map, max_traveling_cells, &mut self.rng);
+            let _ = traj.add_cone(&map, max_traveling_cells, &mut self.rng);
         }
         Ok(())
     }
