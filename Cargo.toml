@@ -20,3 +20,6 @@ sensor_msgs = "*"
 nav_msgs = "*"
 builtin_interfaces = "*"
 geometry_msgs = "*"
+
+[package.metadata.ros]
+install_to_share = ["launch", "rviz"]
